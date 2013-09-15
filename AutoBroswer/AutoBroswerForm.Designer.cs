@@ -46,6 +46,8 @@
             this.keywordRichTB = new System.Windows.Forms.RichTextBox();
             this.label7 = new System.Windows.Forms.Label();
             this.sellerNameTB = new System.Windows.Forms.TextBox();
+            this.jobExpireTimer = new System.Windows.Forms.TextBox();
+            this.label8 = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // beginBTN
@@ -129,7 +131,7 @@
             this.mainItemMinTimeTXT.Name = "mainItemMinTimeTXT";
             this.mainItemMinTimeTXT.Size = new System.Drawing.Size(44, 21);
             this.mainItemMinTimeTXT.TabIndex = 8;
-            this.mainItemMinTimeTXT.Text = "10";
+            this.mainItemMinTimeTXT.Text = "100";
             this.mainItemMinTimeTXT.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             // 
             // mainItemMaxTimeTXT
@@ -138,7 +140,7 @@
             this.mainItemMaxTimeTXT.Name = "mainItemMaxTimeTXT";
             this.mainItemMaxTimeTXT.Size = new System.Drawing.Size(41, 21);
             this.mainItemMaxTimeTXT.TabIndex = 9;
-            this.mainItemMaxTimeTXT.Text = "24";
+            this.mainItemMaxTimeTXT.Text = "240";
             this.mainItemMaxTimeTXT.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             // 
             // label4
@@ -205,7 +207,7 @@
             this.keywordRichTB.Name = "keywordRichTB";
             this.keywordRichTB.Size = new System.Drawing.Size(239, 361);
             this.keywordRichTB.TabIndex = 16;
-            this.keywordRichTB.Text = "铁观音 \n龙井";
+            this.keywordRichTB.Text = "铁观音  茶农直销\n铁观音茶叶正品\n铁观音浓香型";
             this.keywordRichTB.WordWrap = false;
             // 
             // label7
@@ -223,13 +225,33 @@
             this.sellerNameTB.Name = "sellerNameTB";
             this.sellerNameTB.Size = new System.Drawing.Size(158, 21);
             this.sellerNameTB.TabIndex = 18;
-            this.sellerNameTB.Text = "茶";
+            this.sellerNameTB.Text = "铁状元23";
+            // 
+            // jobExpireTimer
+            // 
+            this.jobExpireTimer.Location = new System.Drawing.Point(393, 34);
+            this.jobExpireTimer.Name = "jobExpireTimer";
+            this.jobExpireTimer.Size = new System.Drawing.Size(65, 21);
+            this.jobExpireTimer.TabIndex = 19;
+            this.jobExpireTimer.Text = "15";
+            this.jobExpireTimer.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            // 
+            // label8
+            // 
+            this.label8.AutoSize = true;
+            this.label8.Location = new System.Drawing.Point(246, 37);
+            this.label8.Name = "label8";
+            this.label8.Size = new System.Drawing.Size(125, 12);
+            this.label8.TabIndex = 20;
+            this.label8.Text = "单个任务超时时间(分)";
             // 
             // AutoBroswerForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(530, 390);
+            this.Controls.Add(this.label8);
+            this.Controls.Add(this.jobExpireTimer);
             this.Controls.Add(this.sellerNameTB);
             this.Controls.Add(this.label7);
             this.Controls.Add(this.keywordRichTB);
@@ -277,6 +299,8 @@
         private System.Windows.Forms.RichTextBox keywordRichTB;
         private System.Windows.Forms.Label label7;
         private System.Windows.Forms.TextBox sellerNameTB;
+        private System.Windows.Forms.TextBox jobExpireTimer;
+        private System.Windows.Forms.Label label8;
     }
 }
 

@@ -24,6 +24,9 @@ namespace AutoBroswer
 
             logWriter = new StreamWriter(filePath, append);
             logWriter.AutoFlush = true;
+            if (logWriter == null)
+                throw new InvalidOperationException(
+                    "Logger create failed!");
         }
 
         public void Close()

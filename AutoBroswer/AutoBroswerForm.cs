@@ -34,6 +34,9 @@ namespace AutoBroswer
         public static extern int SendMessage(IntPtr hWnd, UInt32 Msg, int wParam, int lParam);
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         public static extern IntPtr SendMessage(IntPtr hWnd, UInt32 Msg, int wParam, [Out] StringBuilder lParam);
+        [DllImport("user32.dll")]
+        public static extern bool PostMessage(IntPtr hWnd, uint Msg, int wParam, int lParam);
+
         [DllImport("User32.Dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool ShowWindow(IntPtr hWnd, UInt32 nCmdShow);
@@ -85,8 +88,16 @@ namespace AutoBroswer
         const UInt32 SW_MAXIMIZE = 3;
         const UInt32 SW_HIDE = 0;
         const UInt32 SW_MINIMIZE = 6;
+        private string m_uaBroswerPattern = @"(.*)=(.*)";
+        Regex m_uaBroswerRegex;
 
+        public struct STBroserInfo
+        {
+            public string m_uaDesc;
+            public string m_uaContent;
+        }
         List<string> keywordCollection = new List<string>();
+        List<STBroserInfo> broswerUACollection = new List<STBroserInfo>();
         //int current = 0;
         
         //HTMLDocument currentDoc;
@@ -95,6 +106,8 @@ namespace AutoBroswer
         public AutoBroswerForm()
         {
             InitializeComponent();
+
+            m_uaBroswerRegex = new Regex(m_uaBroswerPattern);
             long tick = DateTime.Now.Ticks;
             int randSeed = ((int)(tick & 0xffffffffL) | (int)(tick >> 32));
             rndGenerator = new Random(randSeed);
@@ -135,13 +148,28 @@ namespace AutoBroswer
 
         
         public Random rndGenerator;
+        StringBuilder curSelectComboboxName = new StringBuilder(256, 256);
         private void button1_Click(object sender, EventArgs e)
         {
             bool bRet = false;
             keywordCollection.Clear();
             loadKeyWord();
+            int expireTimer = getExpireTime() * 60 * 1000;
 
+            if (isVPNRunning() == false)
+            {
+                MessageBox.Show("VPN 没有开启");
+                return;
+            }
+
+            if (isCCleanRunning() == false)
+            {
+                MessageBox.Show("cclean 没有开启");
+                return;
+            }
             int loopCnt = Convert.ToInt32(broswerNumTXT.Text.Trim());
+
+            int uaCollectCount = broswerUACollection.Count;
             for (int index = 0; index < loopCnt; index++)
             {
                 //int for loop
@@ -151,25 +179,54 @@ namespace AutoBroswer
                     continue;
                 }
 
-                FileLogger.Instance.LogInfo("第 " + index + " 个，" + "关键词:" + keyWord + "");
+                string uaString = "";
+                string uaCaptionStr = "";
+                if (uaCollectCount != 0)
+                {
+                    int uaIndex = rndGenerator.Next(0, uaCollectCount);
+                    uaString = broswerUACollection[uaIndex].m_uaContent;
+                    uaCaptionStr = broswerUACollection[uaIndex].m_uaDesc;
+                }
+                string searchName = "第 " + index + " 个，" + "关键词:" + keyWord + "";
+                FileLogger.Instance.LogInfo(searchName);
                 bRet = changeVPN();
                 if (bRet == false)
                 {
                     FileLogger.Instance.LogInfo("切换VPN失败");
                     continue;
                 }
-                
 
-                WebBroswerForm webBroswer = new WebBroswerForm(keyWord, this);
 
+                WebBroswerForm webBroswer = new WebBroswerForm(keyWord, uaString, this, expireTimer);
+                webBroswer.Text += " 来源:" + curSelectComboboxName.ToString() + " 系统浏览器:" + uaCaptionStr + " " + searchName;
                 webBroswer.ShowDialog();
+                GC.Collect();
                 bRet = disconnectVPN();
                 bRet = runCClean();
+                
                 FileLogger.Instance.LogInfo("cookie清理干净了，下一个任务!");
             }
             
         }
-
+        public bool isVPNRunning()
+        {
+            IntPtr vpnMainHWND = FindWindow(null, "91VPN网游加速器商业版 - 3.5.2");
+            if (vpnMainHWND == IntPtr.Zero)
+            {
+                return false;
+            }
+            return true;
+        }
+        public bool isCCleanRunning()
+        {
+            IntPtr ccleanMainHWND = FindWindow(null, "Piriform CCleaner");
+            if (ccleanMainHWND == IntPtr.Zero)
+            {
+                FileLogger.Instance.LogInfo("cclean 没有开启");
+                return false;
+            }
+            return true;
+        }
         public bool runCClean()
         {
             IntPtr ccleanMainHWND = FindWindow(null, "Piriform CCleaner");
@@ -184,7 +241,7 @@ namespace AutoBroswer
                 return false;
             }
 
-            IntPtr beginCleanBtnHWND = FindWindowEx(subDlgHWND, IntPtr.Zero, "Button", "运行清洁器(&R)");
+            IntPtr beginCleanBtnHWND = FindWindowEx(subDlgHWND, IntPtr.Zero, "Button", "&Run Cleaner");
             if (beginCleanBtnHWND == IntPtr.Zero)
             {
                 return false;
@@ -205,7 +262,7 @@ namespace AutoBroswer
 
         public bool changeVPN()
         {
-            StringBuilder curSelectComboboxName = new StringBuilder(256, 256);
+            
             IntPtr vpnMainHWND = FindWindow(null, "91VPN网游加速器商业版 - 3.5.2");
             if (vpnMainHWND == IntPtr.Zero)
             {
@@ -269,15 +326,16 @@ namespace AutoBroswer
             bool isConnect = false;
             while (!isConnect)
             {
-                int regionIndex = rndGenerator.Next(0, count);
-                SendMessage(regionCombox, CB_SETCURSEL, regionIndex, 0);
-                SendMessage(regionCombox, CB_GETLBTEXT, regionIndex, curSelectComboboxName);
-
                 string statusTxt = GetControlText(staticTxtHWND);
+
                 if (statusTxt != "Connected!")
                 {
+                    int regionIndex = rndGenerator.Next(0, count);
+                    SendMessage(regionCombox, CB_SETCURSEL, regionIndex, 0);
+                    SendMessage(regionCombox, CB_GETLBTEXT, regionIndex, curSelectComboboxName);
+
                     bool isButtonEnable = false;
-                    do 
+                    do
                     {
                         isButtonEnable = IsWindowEnabled(disConnectBtnHWND);
                         if (isButtonEnable)
@@ -298,17 +356,9 @@ namespace AutoBroswer
                             Thread.Sleep(100);//sleep 200ms
                         }
                         isButtonEnable = IsWindowEnabled(connectBtnHWND);
-                    } while (isButtonEnable) ;
-                    //SendMessage(disConnectBtnHWND, BM_CLICK, 0, 0);
+                    } while (isButtonEnable);
 
-                    //isButtonEnable = false;
-                    //while (!isButtonEnable)
-                    //{
-                    //    Thread.Sleep(200);//sleep 200ms
-                    //    isButtonEnable = IsWindowEnabled(connectBtnHWND);
-                    //}
-                    ////System.Threading.Thread.Sleep(5000);
-                    //SendMessage(connectBtnHWND, BM_CLICK, 0, 0);
+                    Thread.Sleep(10000);
                 }
                 else
                 {
@@ -366,7 +416,7 @@ namespace AutoBroswer
             while (!isDisConnect)
             {
                 string statusTxt = GetControlText(staticTxtHWND);
-                if (statusTxt != "Disconnected!")
+                if (statusTxt.ToLower().Trim() != "disconnected!")
                 {
                     SendMessage(disConnectBtnHWND, BM_CLICK, 0, 0);
                     System.Threading.Thread.Sleep(50);
@@ -442,12 +492,38 @@ namespace AutoBroswer
             return value;
         }
 
+        public int getExpireTime()
+        {
+            int value = 1;
+            Int32.TryParse(jobExpireTimer.Text.Trim(), out value);
+            return value;
+        }
+
         private void AutoBroswerForm_Load(object sender, EventArgs e)
         {
             try
             {
                 keywordRichTB.Text = File.ReadAllText("KeyWord.txt", Encoding.Default);
-                FileLogger.Instance.Open(@"MyLog"+DateTime.Now.ToString("yyyyMMddHH") + ".log", true);
+
+                string uaString = File.ReadAllText("myua.txt", Encoding.Default);
+                string[] lines = Regex.Split(uaString, "\n");
+                foreach (string line in lines)
+                {
+                    
+                    if (line.Trim() != "")
+                    {
+                        MatchCollection matches = m_uaBroswerRegex.Matches(line); 
+                        foreach(Match m in matches)
+                        {
+                            STBroserInfo uaBroswer;
+                            uaBroswer.m_uaContent = m.Groups[2].Value;
+                            uaBroswer.m_uaDesc = m.Groups[1].Value;
+                            broswerUACollection.Add(uaBroswer);
+                        }
+                        
+                    }
+                }
+                FileLogger.Instance.Open(@"MyLog"+DateTime.Now.ToString("yyyyMMdd") + ".log", true);
             }
             catch (Exception error)
             {

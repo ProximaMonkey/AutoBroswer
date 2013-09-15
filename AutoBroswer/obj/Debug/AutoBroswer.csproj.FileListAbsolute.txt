@@ -22,3 +22,5 @@ E:\AutoBroswer\AutoBroswer\obj\Debug\AutoBroswer.WebBroswerForm.resources
 E:\AutoBroswer\AutoBroswer\obj\Debug\AutoBroswer.AutoBroswerForm.resources
 E:\project\AutoBroswer\AutoBroswer\obj\Debug\AutoBroswer.AutoBroswerForm.resources
 E:\project\AutoBroswer\AutoBroswer\obj\Debug\AutoBroswer.WebBroswerForm.resources
+E:\project\AutoBroswer\AutoBroswer\bin\Debug\AutoBroswer.exe.config
+E:\project\AutoBroswer\AutoBroswer\bin\Debug\Microsoft.mshtml.dll
