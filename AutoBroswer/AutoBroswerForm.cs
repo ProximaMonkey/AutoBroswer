@@ -198,13 +198,21 @@ namespace AutoBroswer
 
 
                 WebBroswerForm webBroswer = new WebBroswerForm(keyWord, uaString, this, expireTimer);
-                webBroswer.Text += " 来源:" + curSelectComboboxName.ToString() + " 系统浏览器:" + uaCaptionStr + " " + searchName;
+                webBroswer.Text += " 来源:" + curSelectComboboxName.ToString() + " 系统浏览器[版本号]:" + uaCaptionStr + " " + searchName;
                 webBroswer.ShowDialog();
+                
                 GC.Collect();
                 bRet = disconnectVPN();
                 bRet = runCClean();
                 
                 FileLogger.Instance.LogInfo("cookie清理干净了，下一个任务!");
+
+
+                if (webBroswer.isNormalQuit == false)
+                {
+                    FileLogger.Instance.LogInfo("手动停止!");
+                    break;
+                }
             }
             
         }
@@ -358,6 +366,8 @@ namespace AutoBroswer
                         isButtonEnable = IsWindowEnabled(connectBtnHWND);
                     } while (isButtonEnable);
 
+                    //Thread.Sleep(1000);
+                    //statusTxt = GetControlText(staticTxtHWND);
                     Thread.Sleep(10000);
                 }
                 else
