@@ -47,10 +47,10 @@
             // 
             // tabPage1
             // 
-            this.tabPage1.Location = new System.Drawing.Point(4, 22);
+            this.tabPage1.Location = new System.Drawing.Point(4, 21);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(1030, 447);
+            this.tabPage1.Size = new System.Drawing.Size(1030, 448);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "Search";
             this.tabPage1.UseVisualStyleBackColor = true;
@@ -76,7 +76,6 @@
             this.Name = "WebBroswerForm";
             this.Text = "开始为种菜准备";
             this.TopMost = true;
-            this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
             this.Shown += new System.EventHandler(this.WebBroswerForm_Shown);
             this.Tabs.ResumeLayout(false);
             this.ResumeLayout(false);

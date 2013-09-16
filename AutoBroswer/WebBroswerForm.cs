@@ -28,6 +28,11 @@ namespace AutoBroswer
         [DllImport("user32.dll")]
         static extern bool ClientToScreen(IntPtr hWnd, ref Point lpPoint);
 
+        [DllImport("user32.dll")]
+        static extern bool SetForegroundWindow(IntPtr hWnd);
+        [DllImport("user32.dll")]
+        private static extern bool BlockInput(bool block);
+
         string keyWord;
         AutoBroswerForm autoBroswerFrom;
         enum ECurrentStep
@@ -110,7 +115,7 @@ namespace AutoBroswer
 
             timeDown.Interval = 100;
             timeDown.Tick += new EventHandler(timeDown_Tick);
-            timeUp.Interval = 100;
+            timeUp.Interval = 10;
             timeUp.Tick += new EventHandler(timeUp_Tick);
 
             expireTimer.Interval = expireTime;// 15 * 60 * millSeconds;//15minus
@@ -139,7 +144,7 @@ namespace AutoBroswer
                 // If there's more than one button, you can check the
                 //element.InnerHTML to see if it's the one you want
                 string className = searchBTN.GetAttribute("className");
-                if (className == "btn-search")
+                if (className == "btn-search" || searchBTN.InnerText == "搜 索")
                 {
                     int randX = autoBroswerFrom.rndGenerator.Next(0, searchBTN.OffsetRectangle.Width - 1);
                     int randY = autoBroswerFrom.rndGenerator.Next(0, searchBTN.OffsetRectangle.Height - 1);
@@ -210,9 +215,9 @@ namespace AutoBroswer
 
 
 
-            if (currentBroswerPage.ReadyState != WebBrowserReadyState.Complete) return;
-            if ((e.Url.AbsolutePath == "blank") || (e.Url != currentBroswerPage.Url)) return;
-            if (currentBroswerPage.Document.Body.All.Count < 10) return;
+            //if (currentBroswerPage.ReadyState != WebBrowserReadyState.Complete) return;
+            //if ((e.Url.AbsolutePath == "blank") || (e.Url != currentBroswerPage.Url)) return;
+            //if (currentBroswerPage.Document.Body.All.Count < 10) return;
 
             //HtmlElement head = currentBroswerPage.Document.GetElementsByTagName("head")[0];
             //HtmlElement testScript = currentBroswerPage.Document.CreateElement("script");
@@ -673,7 +678,7 @@ namespace AutoBroswer
             return true;
         }
 
-        //在主页点击其它宝贝
+        //在主页点击其它标记
         public bool ClickItemByItem(IntPtr hwnd, HtmlDocument doc, HtmlElement visitItem)
         {
             visitItem.ScrollIntoView(true);
@@ -791,7 +796,7 @@ namespace AutoBroswer
 
         public string pageInfo;
         public string prevPage;
-        public string nextPage;
+        public string nextPage = "1/100";
         public bool gotoNextPage()
         {
             HtmlElement foundAnchorEle = null;
@@ -827,13 +832,13 @@ namespace AutoBroswer
                 FileLogger.Instance.LogInfo("没有找到宝贝！");
                 return false;
             }
-            Point p = GetOffset(nextPageLink);
+            //Point p = GetOffset(nextPageLink);
 
-            p = InitialTabBrowser.PointToClient(p);
-            AutoBroswerForm.SetCursorPos(p.X, p.Y);
+            //p = InitialTabBrowser.PointToClient(p);
+            //AutoBroswerForm.SetCursorPos(p.X, p.Y);
 
-            HtmlDocument doc = (HtmlDocument)InitialTabBrowser.Document;
-            doc.Window.ScrollTo(new Point(0, p.Y));
+            //HtmlDocument doc = (HtmlDocument)InitialTabBrowser.Document;
+            //doc.Window.ScrollTo(new Point(0, p.Y));
 
             ClickNextPage(InitialTabBrowser.Handle, nextPageLink);
             //nextPageLink.InvokeMember("click");//.click();
@@ -864,13 +869,22 @@ namespace AutoBroswer
 
         private void ClickOnPoint(IntPtr wndHandle, Point clientPoint)
         {
+            this.Activate();
+            this.WindowState = FormWindowState.Normal;
+            SetForegroundWindow(wndHandle);
+
+            FileLogger.Instance.LogInfo("clientX:" + clientPoint.X + ",Y:" + clientPoint.Y);
             Point oldPos = Cursor.Position;
             ClientToScreen(wndHandle, ref clientPoint);
+            FileLogger.Instance.LogInfo("screenX:" + clientPoint.X + ",Y:" + clientPoint.Y);
             /// set cursor on coords, and press mouse
             Cursor.Position = new Point(clientPoint.X, clientPoint.Y);
+            BlockInput(true);
             Thread.Sleep(1000);
             mouse_event(0x00000002, 0, 0, 0, UIntPtr.Zero); /// left mouse button down
             mouse_event(0x00000004, 0, 0, 0, UIntPtr.Zero); /// left mouse button up
+            Thread.Sleep(50);
+            BlockInput(false);
             //Cursor.Position = oldPos;
         }
 

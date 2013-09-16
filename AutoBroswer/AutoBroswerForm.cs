@@ -156,17 +156,17 @@ namespace AutoBroswer
             loadKeyWord();
             int expireTimer = getExpireTime() * 60 * 1000;
 
-            if (isVPNRunning() == false)
-            {
-                MessageBox.Show("VPN 没有开启");
-                return;
-            }
+            //if (isVPNRunning() == false)
+            //{
+            //    MessageBox.Show("VPN 没有开启");
+            //    return;
+            //}
 
-            if (isCCleanRunning() == false)
-            {
-                MessageBox.Show("cclean 没有开启");
-                return;
-            }
+            //if (isCCleanRunning() == false)
+            //{
+            //    MessageBox.Show("cclean 没有开启");
+            //    return;
+            //}
             int loopCnt = Convert.ToInt32(broswerNumTXT.Text.Trim());
 
             int uaCollectCount = broswerUACollection.Count;
@@ -189,12 +189,12 @@ namespace AutoBroswer
                 }
                 string searchName = "第 " + index + " 个，" + "关键词:" + keyWord + "";
                 FileLogger.Instance.LogInfo(searchName);
-                bRet = changeVPN();
-                if (bRet == false)
-                {
-                    FileLogger.Instance.LogInfo("切换VPN失败");
-                    continue;
-                }
+                //bRet = changeVPN();
+                //if (bRet == false)
+                //{
+                //    FileLogger.Instance.LogInfo("切换VPN失败");
+                //    continue;
+                //}
 
 
                 WebBroswerForm webBroswer = new WebBroswerForm(keyWord, uaString, this, expireTimer);
@@ -202,8 +202,8 @@ namespace AutoBroswer
                 webBroswer.ShowDialog();
                 
                 GC.Collect();
-                bRet = disconnectVPN();
-                bRet = runCClean();
+                //bRet = disconnectVPN();
+                //bRet = runCClean();
                 
                 FileLogger.Instance.LogInfo("cookie清理干净了，下一个任务!");
 
