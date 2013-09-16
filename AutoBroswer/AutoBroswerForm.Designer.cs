@@ -48,6 +48,7 @@
             this.sellerNameTB = new System.Windows.Forms.TextBox();
             this.jobExpireTimer = new System.Windows.Forms.TextBox();
             this.label8 = new System.Windows.Forms.Label();
+            this.isDebugCB = new System.Windows.Forms.CheckBox();
             this.SuspendLayout();
             // 
             // beginBTN
@@ -245,11 +246,22 @@
             this.label8.TabIndex = 20;
             this.label8.Text = "单个任务超时时间(分)";
             // 
+            // isDebugCB
+            // 
+            this.isDebugCB.AutoSize = true;
+            this.isDebugCB.Location = new System.Drawing.Point(380, 13);
+            this.isDebugCB.Name = "isDebugCB";
+            this.isDebugCB.Size = new System.Drawing.Size(72, 16);
+            this.isDebugCB.TabIndex = 21;
+            this.isDebugCB.Text = "是否调试";
+            this.isDebugCB.UseVisualStyleBackColor = true;
+            // 
             // AutoBroswerForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(530, 390);
+            this.Controls.Add(this.isDebugCB);
             this.Controls.Add(this.label8);
             this.Controls.Add(this.jobExpireTimer);
             this.Controls.Add(this.sellerNameTB);
@@ -301,6 +313,7 @@
         private System.Windows.Forms.TextBox sellerNameTB;
         private System.Windows.Forms.TextBox jobExpireTimer;
         private System.Windows.Forms.Label label8;
+        private System.Windows.Forms.CheckBox isDebugCB;
     }
 }
 
