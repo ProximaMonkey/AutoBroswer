@@ -21,6 +21,7 @@ namespace AutoBroswer
         System.Windows.Forms.Timer timeUp = new System.Windows.Forms.Timer();
         System.Windows.Forms.Timer pageMoniterTimer = new System.Windows.Forms.Timer();
         System.Windows.Forms.Timer expireTimer = new System.Windows.Forms.Timer();
+        public int randMoveInterval = 50;
 
         [DllImport("user32.dll")]
         static extern void mouse_event(uint dwFlags, uint dx, uint dy, uint dwData, UIntPtr dwExtraInfo);
@@ -160,11 +161,12 @@ namespace AutoBroswer
                     //InitialTabBrowser.Document.InvokeScript("TestClick", objArgs);
                     //Thread.Sleep(6000);
                     //searchBTN.InvokeMember("click");//.click();
-//Rectangle rect = wbElementMouseSimulate.GetElementRect(document.Body.DomElement as mshtml.IHTMLElement, searchBTN.DomElement as mshtml.IHTMLElement);
-//Point p = new Point(rect.Left + rect.Width / 2, rect.Top + rect.Height / 2);
+                    Rectangle rect = wbElementMouseSimulate.GetElementRect(document.Body.DomElement as mshtml.IHTMLElement, searchBTN.DomElement as mshtml.IHTMLElement);
+                    Point p = new Point(rect.Left + rect.Width / 2, rect.Top + rect.Height / 2);
                     //p = InitialTabBrowser.PointToScreen(p);
                     //AutoBroswerForm.SetCursorPos(p.X, p.Y);
-//ClickOnPoint(InitialTabBrowser.Handle, p);
+                    RandMove(InitialTabBrowser.Handle, 1000, rect);
+                    ClickOnPoint(InitialTabBrowser.Handle, p);
                     //searchBTN.ScrollIntoView(true);
                     //Point p = GetOffset(searchBTN);
                     //p.Y -= InitialTabBrowser.Document.GetElementsByTagName("HTML")[0].ScrollTop;
@@ -175,7 +177,7 @@ namespace AutoBroswer
                     //AutoBroswerForm.SetCursorPos(p.X, p.Y);
                     //Thread.Sleep(6000);
                     //searchBTN.InvokeMember("click");
-                    InitialTabBrowser.Document.InvokeScript(@"simulate", new object[] { searchBTN, "click", "{ pointerX: " + searchBTN.OffsetRectangle.Left + ", pointerY: " +searchBTN.OffsetRectangle.Top+ " }" });                    
+                    //InitialTabBrowser.Document.InvokeScript(@"simulate", new object[] { searchBTN, "click", "{ pointerX: " + searchBTN.OffsetRectangle.Left + ", pointerY: " +searchBTN.OffsetRectangle.Top+ " }" });                    
                     break;
                 }
             }
@@ -215,9 +217,9 @@ namespace AutoBroswer
 
 
 
-            //if (currentBroswerPage.ReadyState != WebBrowserReadyState.Complete) return;
-            //if ((e.Url.AbsolutePath == "blank") || (e.Url != currentBroswerPage.Url)) return;
-            //if (currentBroswerPage.Document.Body.All.Count < 10) return;
+            if (currentBroswerPage.ReadyState != WebBrowserReadyState.Complete) return;
+            if ((e.Url.AbsolutePath == "blank") || (e.Url != currentBroswerPage.Url)) return;
+            if (currentBroswerPage.Document.Body.All.Count < 10) return;
 
             HtmlElement head = currentBroswerPage.Document.GetElementsByTagName("head")[0];
             HtmlElement testScript = currentBroswerPage.Document.CreateElement("script");
@@ -307,6 +309,32 @@ namespace AutoBroswer
         {
             isNormalQuit = true;
             ShutDownWinForms();
+        }
+
+        private void RandMove(IntPtr wndHandle, int moveTime, Rectangle randMoveRect)
+        {
+            int currentRandMoveTimes = 0;
+            int randMoveCount = moveTime / randMoveInterval;
+            BlockInput(true);
+
+            this.Activate();
+            this.WindowState = FormWindowState.Normal;
+            SetForegroundWindow(wndHandle);
+            while (currentRandMoveTimes <= randMoveCount)
+            {
+                int randOffsetX = autoBroswerFrom.rndGenerator.Next(0, randMoveRect.Width);
+                int randOffsetY = autoBroswerFrom.rndGenerator.Next(0, randMoveRect.Height);
+                Point clientPoint = new Point(randOffsetX + randMoveRect.Left, randOffsetY + randMoveRect.Top);
+
+                ClientToScreen(wndHandle, ref clientPoint);
+                /// set cursor on coords, and press mouse
+                //BlockInput(true);
+                Cursor.Position = new Point(clientPoint.X, clientPoint.Y);
+                currentRandMoveTimes++;
+                Thread.Sleep(randMoveInterval);
+            }
+
+            BlockInput(false);
         }
 
         void timeDown_Tick(object sender, EventArgs e)
@@ -612,6 +640,7 @@ namespace AutoBroswer
             //ClickOnPoint(hwnd, p);
             Point p = GetOffset(visitItem);
             p.Y -= InitialTabBrowser.Document.GetElementsByTagName("HTML")[0].ScrollTop;
+            //RandMove(hwnd, 1000, visitItem.OffsetRectangle);
             ClickOnPoint(hwnd, p);
             //Rectangle rect = wbElementMouseSimulate.GetElementRect(InitialTabBrowser.Document.Body.DomElement as mshtml.IHTMLElement, visitItem.DomElement as mshtml.IHTMLElement);
             //Point p = new Point(rect.Left + rect.Width / 2, rect.Top + rect.Height / 2);
@@ -653,6 +682,7 @@ namespace AutoBroswer
             p.Y += randY;
 
             //Thread.Sleep(500);
+            RandMove(hwnd, 1000, visitItem.OffsetRectangle);
             ClickOnPoint(hwnd, p);
             //object []objArgs = new object[] { visitItem.All[0].All[0] };
             //InitialTabBrowser.Document.InvokeScript("TestClick", objArgs);
@@ -664,7 +694,7 @@ namespace AutoBroswer
         //在主页点击其它标记
         public bool ClickItemByItem(IntPtr hwnd, HtmlDocument doc, HtmlElement visitItem)
         {
-            visitItem.ScrollIntoView(true);
+            visitItem.ScrollIntoView(false);
 
             Point p = GetOffset(visitItem);
             p.Y -= doc.GetElementsByTagName("HTML")[0].ScrollTop;
@@ -681,6 +711,7 @@ namespace AutoBroswer
             }
             p.X += randX;
             p.Y += randY;
+            RandMove(hwnd, 500, visitItem.OffsetRectangle);
             ClickOnPoint(hwnd, p);
             return true;
         }
@@ -866,10 +897,10 @@ namespace AutoBroswer
             BlockInput(true);
             Cursor.Position = new Point(clientPoint.X, clientPoint.Y);
             
-            Thread.Sleep(1000);
+            //Thread.Sleep(1000);
             mouse_event(0x00000002, 0, 0, 0, UIntPtr.Zero); /// left mouse button down
             mouse_event(0x00000004, 0, 0, 0, UIntPtr.Zero); /// left mouse button up
-            Thread.Sleep(50);
+            //Thread.Sleep(50);
             BlockInput(false);
             //Cursor.Position = oldPos;
         }
@@ -940,6 +971,8 @@ namespace AutoBroswer
             timeDown.Enabled = true;
             timeDown.Start();
         }
+
+        
         public void PageMoniterTimeEvent( object source, EventArgs e)
         {
             timeUp.Enabled = false;
