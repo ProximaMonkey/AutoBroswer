@@ -112,7 +112,7 @@ namespace AutoBroswer
             long tick = DateTime.Now.Ticks;
             int randSeed = ((int)(tick & 0xffffffffL) | (int)(tick >> 32));
             rndGenerator = new Random(randSeed);
-            visitDeepCB.SelectedIndex = 3;
+            visitDeepCB.SelectedIndex = 2;
             
         }
 
@@ -507,7 +507,7 @@ namespace AutoBroswer
         public int getVisitDeep()
         {
             int value = 1;
-            Int32.TryParse(visitDeepCB.SelectedText.Trim(), out value);
+            Int32.TryParse(visitDeepCB.SelectedItem.ToString().Trim(), out value);
             return value;
         }
 

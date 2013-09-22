@@ -5,7 +5,27 @@ using System.Runtime.InteropServices;
 
 namespace AutoBroswer
 {
+public class WebBrowserExtendedNavigatingEventArgs : System.ComponentModel.CancelEventArgs
+{
+    private string _Url;
+    public string Url
+    {
+        get { return _Url; }
+    }
 
+    private string _Frame;
+    public string Frame
+    {
+        get { return _Frame; }
+    }
+
+    public WebBrowserExtendedNavigatingEventArgs(string url, string frame)
+        : base()
+    {
+        _Url = url;
+        _Frame = frame;
+    }
+}
 //First define a new EventArgs class to contain the newly exposed data
 public class NewWindow2EventArgs : CancelEventArgs
 {
@@ -79,49 +99,49 @@ public class CommandStateChangeEventArgs : EventArgs
 //Extend the WebBrowser control
 public class ExtendedWebBrowser : WebBrowser
 {
-    AxHost.ConnectionPointCookie cookie;
+    public AxHost.ConnectionPointCookie cookie;
     WebBrowserExtendedEvents events;
 
     bool renavigating = false;
     public string UserAgent { get; set; }
     public ExtendedWebBrowser()
     {
-        DocumentCompleted += SetupBrowser;
+        //DocumentCompleted += SetupBrowser;
 
-        //this will cause SetupBrowser to run (we need a document object)
-        Navigate("about:blank");
+        ////this will cause SetupBrowser to run (we need a document object)
+        //Navigate("about:blank");
     }
-    void SetupBrowser(object sender, WebBrowserDocumentCompletedEventArgs e)
-    {
-        DocumentCompleted -= SetupBrowser;
-        SHDocVw.WebBrowser xBrowser = (SHDocVw.WebBrowser)ActiveXInstance;
-        xBrowser.BeforeNavigate2 += BeforeNavigate;
-        DocumentCompleted += PageLoaded;
-    }
+    //void SetupBrowser(object sender, WebBrowserDocumentCompletedEventArgs e)
+    //{
+    //    DocumentCompleted -= SetupBrowser;
+    //    SHDocVw.WebBrowser xBrowser = (SHDocVw.WebBrowser)ActiveXInstance;
+    //    xBrowser.BeforeNavigate2 += BeforeNavigate;
+    //    DocumentCompleted += PageLoaded;
+    //}
 
-    void PageLoaded(object sender, WebBrowserDocumentCompletedEventArgs e)
-    {
+    //void PageLoaded(object sender, WebBrowserDocumentCompletedEventArgs e)
+    //{
 
-    }
+    //}
 
-    void BeforeNavigate(object pDisp, ref object url, ref object flags, ref object targetFrameName,
-        ref object postData, ref object headers, ref bool cancel)
-    {
-        if (!string.IsNullOrEmpty(UserAgent))
-        {
-            if (!renavigating)
-            {
-                headers += string.Format("User-Agent: {0}\r\n", UserAgent);
-                renavigating = true;
-                cancel = true;
-                Navigate((string)url, (string)targetFrameName, (byte[])postData, (string)headers);
-            }
-            else
-            {
-                renavigating = false;
-            }
-        }
-    }
+    //void BeforeNavigate(object pDisp, ref object url, ref object flags, ref object targetFrameName,
+    //    ref object postData, ref object headers, ref bool cancel)
+    //{
+    //    if (!string.IsNullOrEmpty(UserAgent))
+    //    {
+    //        if (!renavigating)
+    //        {
+    //            headers += string.Format("User-Agent: {0}\r\n", UserAgent);
+    //            renavigating = true;
+    //            cancel = true;
+    //            Navigate((string)url, (string)targetFrameName, (byte[])postData, (string)headers);
+    //        }
+    //        else
+    //        {
+    //            renavigating = false;
+    //        }
+    //    }
+    //}
 
     //This method will be called to give you a chance to create your own event sink
     protected override void CreateSink()
@@ -159,6 +179,30 @@ public class ExtendedWebBrowser : WebBrowser
 
     //This new event will fire for the NewWindow2
     public event EventHandler<NewWindow2EventArgs> NewWindow2;
+    public event EventHandler<WebBrowserExtendedNavigatingEventArgs> BeforeNavigateHandle;
+    public event EventHandler<WebBrowserExtendedNavigatingEventArgs> BeforeNewWindow;
+    protected void OnBeforeNewWindow(string url, out bool cancel)
+    {
+        EventHandler<WebBrowserExtendedNavigatingEventArgs> h = BeforeNewWindow;
+        WebBrowserExtendedNavigatingEventArgs args = new WebBrowserExtendedNavigatingEventArgs(url, null);
+        if (null != h)
+        {
+            h(this, args);
+        }
+        cancel = args.Cancel;
+    }
+
+    protected void OnBeforeNavigate(string url, string frame, out bool cancel)
+    {
+        EventHandler<WebBrowserExtendedNavigatingEventArgs> h = BeforeNavigateHandle;
+        WebBrowserExtendedNavigatingEventArgs args = new WebBrowserExtendedNavigatingEventArgs(url, frame);
+        if (null != h)
+        {
+            h(this, args);
+        }
+        //Pass the cancellation chosen back out to the events
+        cancel = args.Cancel;
+    }
 
     protected void OnNewWindow2(ref object ppDisp, ref bool cancel)
     {
@@ -229,7 +273,15 @@ public class ExtendedWebBrowser : WebBrowser
         {
             _Browser.OnCommandStateChange( command,  ref enable);
         }
+        public void BeforeNavigate2(object pDisp, ref object URL, ref object flags, ref object targetFrameName, ref object postData, ref object headers, ref bool cancel)
+        {
+            _Browser.OnBeforeNavigate((string)URL, (string)targetFrameName, out cancel);
+        }
 
+        public void NewWindow3(object pDisp, ref bool cancel, ref object flags, ref object URLContext, ref object URL)
+        {
+            _Browser.OnBeforeNewWindow((string)URL, out cancel);
+        }
 
     }
     [ComImport, Guid("34A715A0-6587-11D0-924A-0020AFC7AC4D"), InterfaceType(ComInterfaceType.InterfaceIsIDispatch), TypeLibType(TypeLibTypeFlags.FHidden)]
@@ -241,6 +293,25 @@ public class ExtendedWebBrowser : WebBrowser
         void DocumentComplete([In, MarshalAs(UnmanagedType.IDispatch)] object pDisp, [In] ref object URL);
         [DispId(0xfb)]
         void NewWindow2([In, Out, MarshalAs(UnmanagedType.IDispatch)] ref object pDisp, [In, Out] ref bool cancel);
+
+        [System.Runtime.InteropServices.DispId(250)]
+        void BeforeNavigate2(
+            [System.Runtime.InteropServices.In,
+            System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.IDispatch)] object pDisp,
+            [System.Runtime.InteropServices.In] ref object URL,
+            [System.Runtime.InteropServices.In] ref object flags,
+            [System.Runtime.InteropServices.In] ref object targetFrameName, [System.Runtime.InteropServices.In] ref object postData,
+            [System.Runtime.InteropServices.In] ref object headers,
+            [System.Runtime.InteropServices.In,
+            System.Runtime.InteropServices.Out] ref bool cancel);
+        [System.Runtime.InteropServices.DispId(273)]
+        void NewWindow3(
+            [System.Runtime.InteropServices.In,
+            System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.IDispatch)] object pDisp,
+            [System.Runtime.InteropServices.In, System.Runtime.InteropServices.Out] ref bool cancel,
+            [System.Runtime.InteropServices.In] ref object flags,
+            [System.Runtime.InteropServices.In] ref object URLContext,
+            [System.Runtime.InteropServices.In] ref object URL);
     }
 
     [ComImport, Guid("D30C1661-CDAF-11d0-8A3E-00C04FC9E26E"), TypeLibType(TypeLibTypeFlags.FOleAutomation | TypeLibTypeFlags.FDual | TypeLibTypeFlags.FHidden)]

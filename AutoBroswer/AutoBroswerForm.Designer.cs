@@ -226,6 +226,7 @@
             this.sellerNameTB.Name = "sellerNameTB";
             this.sellerNameTB.Size = new System.Drawing.Size(158, 21);
             this.sellerNameTB.TabIndex = 18;
+            this.sellerNameTB.Text = "铁状元";
             // 
             // jobExpireTimer
             // 
