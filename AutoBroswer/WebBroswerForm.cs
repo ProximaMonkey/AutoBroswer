@@ -751,8 +751,8 @@ namespace AutoBroswer
             Size winSize = InitialTabBrowser.Document.Window.Size;
             InitialTabBrowser.Document.Window.ScrollTo(winSize.Width / 2, p.Y);
             p.Y -= InitialTabBrowser.Document.GetElementsByTagName("HTML")[0].ScrollTop;
-
-            ClickOnPoint(hwnd, p);
+            ClickOnPointInClient(hwnd, p);
+            //ClickOnPoint(hwnd, p);
 
             return true;
         }
@@ -779,7 +779,8 @@ namespace AutoBroswer
 
             RandMove(hwnd, 500, rect);
             //Thread.Sleep(20000);
-            ClickOnPoint(hwnd, p);
+            ClickOnPointInClient(hwnd, p);
+            //ClickOnPoint(hwnd, p);
 
             return true;
         }
@@ -796,7 +797,8 @@ namespace AutoBroswer
             p.X = rect.Left + rect.Width / 4;
             p.Y = rect.Top + rect.Height / 4;
             RandMove(hwnd, 500, rect);
-            ClickOnPoint(hwnd, p);
+            ClickOnPointInClient(hwnd, p);
+            //ClickOnPoint(hwnd, p);
             return true;
         }
         public bool randSelectOtherItem()
