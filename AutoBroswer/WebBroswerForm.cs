@@ -33,6 +33,11 @@ namespace AutoBroswer
         static extern bool SetForegroundWindow(IntPtr hWnd);
         [DllImport("user32.dll")]
         private static extern bool BlockInput(bool block);
+        [DllImport("user32.dll", SetLastError = true)]
+        static extern IntPtr GetWindow(IntPtr hWnd, uint uCmd);
+        
+        [DllImport("user32.dll", CharSet=CharSet.Auto)]
+        static extern int GetClassName(IntPtr hWnd, StringBuilder lpClassName,int nMaxCount);
 
         string keyWord;
         AutoBroswerForm autoBroswerFrom;
@@ -64,7 +69,7 @@ namespace AutoBroswer
 
         private HtmlElement m_myItemElement;//在搜索页的ELEMENT,
         private HtmlElement m_myMainPageElement;//在在主宝贝页面中的首页
-        private List<HtmlElement> m_randItemElement;//其它随机宝贝
+        private List<HtmlElement> m_randItemElement;//其它随机宝贝,<p class="pic-box">
         private string[] m_clickLinkItem = { "评价详情", "成交记录", "宝贝详情" };
         private string[] m_clickMainPageItem = { "首页", "查看所有宝贝", "进入店铺"};
         private string[] m_clickSpanItem = { "物流运费", "销　　量", "评　　价", "宝贝类型", "支　　付" };
@@ -125,9 +130,9 @@ namespace AutoBroswer
                 Tag = Tabs.TabPages[0]
             };
             InitialTabBrowser.DocumentCompleted += new WebBrowserDocumentCompletedEventHandler(InitialTabBrowser_DocumentCompleted);
-            InitialTabBrowser.NewWindow2 += new EventHandler<NewWindow2EventArgs>(SourceBrowser_NewWindow2);
+            //InitialTabBrowser.NewWindow2 += new EventHandler<NewWindow2EventArgs>(SourceBrowser_NewWindow2);
 
-            InitialTabBrowser.BeforeNewWindow += new EventHandler<WebBrowserExtendedNavigatingEventArgs>(InitialTabBrowser_BeforeNewWindow);
+            //InitialTabBrowser.BeforeNewWindow += new EventHandler<WebBrowserExtendedNavigatingEventArgs>(InitialTabBrowser_BeforeNewWindow);
 
             timeDown.Interval = 100;
             timeDown.Tick += new EventHandler(timeDown_Tick);
@@ -181,7 +186,8 @@ namespace AutoBroswer
                     //p = InitialTabBrowser.PointToScreen(p);
                     //AutoBroswerForm.SetCursorPos(p.X, p.Y);
                     RandMove(InitialTabBrowser.Handle, 1000, rect);
-                    ClickOnPoint(InitialTabBrowser.Handle, p);
+                    //ClickOnPoint(InitialTabBrowser.Handle, p);
+                    ClickOnPointInClient(InitialTabBrowser.Handle, p);
                     //searchBTN.ScrollIntoView(true);
                     //Point p = GetOffset(searchBTN);
                     //p.Y -= InitialTabBrowser.Document.GetElementsByTagName("HTML")[0].ScrollTop;
@@ -192,7 +198,8 @@ namespace AutoBroswer
                     //AutoBroswerForm.SetCursorPos(p.X, p.Y);
                     //Thread.Sleep(6000);
                     //searchBTN.InvokeMember("click");
-                    //InitialTabBrowser.Document.InvokeScript(@"simulate", new object[] { searchBTN, "click", "{ pointerX: " + searchBTN.OffsetRectangle.Left + ", pointerY: " +searchBTN.OffsetRectangle.Top+ " }" });                    
+                    //InitialTabBrowser.Document.InvokeScript("eventFire", new object[] { searchBTN });     
+
                     break;
                 }
             }
@@ -242,25 +249,30 @@ namespace AutoBroswer
             if ((e.Url.AbsolutePath == "blank") || (e.Url != currentBroswerPage.Url)) return;
             if (currentBroswerPage.Document.Body.All.Count < 10) return;
 
+            urlTB.Text = e.Url.ToString();
             //foreach (HtmlElement archor in this.InitialTabBrowser.Document.Links)
             //{
-            //    archor.SetAttribute("target", "_self");
+            //    archor.SetAttribute("target", "_top");
             //}
 
-            ////将所有的FORM的提交目标，指向本窗体
             //foreach (HtmlElement form in this.InitialTabBrowser.Document.Forms)
             //{
-            //    form.SetAttribute("target", "_self");
+            //    form.SetAttribute("target", "_top");
             //}
 
-            FileLogger.Instance.LogInfo("Cookies:" + ((ExtendedWebBrowser)sender).Document.Cookie);
-            //HtmlElement head = currentBroswerPage.Document.GetElementsByTagName("head")[0];
-            //HtmlElement testScript = currentBroswerPage.Document.CreateElement("script");
-            //IHTMLScriptElement element = (IHTMLScriptElement)testScript.DomElement;
-            ////element.type = @"text/javascript";
-            //element.text = wbElementMouseSimulate.simulateMouseEvent;
+            //FileLogger.Instance.LogInfo("Cookies:" + ((ExtendedWebBrowser)sender).Document.Cookie);
+            HtmlElement head = currentBroswerPage.Document.GetElementsByTagName("head")[0];
+            HtmlElement testScript = currentBroswerPage.Document.CreateElement("script");
+            IHTMLScriptElement element = (IHTMLScriptElement)testScript.DomElement;
+            element.text = wbElementMouseSimulate.m_jsScript2;
+            head.AppendChild(testScript);
 
-            //head.AppendChild(testScript);
+            //HtmlElement head = currentBroswerPage.Document.GetElementsByTagName("head")[0];
+            //HtmlElement scriptEl = currentBroswerPage.Document.CreateElement("script");
+            //IHTMLScriptElement element = (IHTMLScriptElement)scriptEl.DomElement;
+            //element.text = "function sayHello() { alert('hello') }";
+            //head.AppendChild(scriptEl);
+            //currentBroswerPage.Document.InvokeScript("sayHello");
 
             TabPage seltab = this.Tabs.SelectedTab;
 
@@ -649,8 +661,8 @@ namespace AutoBroswer
             }
             return true;
         }
-        
-        public HtmlElement getPicElement(HtmlElement itemBoxEle)
+
+        public HtmlElement getPicElement(HtmlElement itemBoxEle) //itemBoxEle == <div class=col item>
         {
             //通过itembox 得到pic element
             if (itemBoxEle == null)
@@ -705,10 +717,12 @@ namespace AutoBroswer
             }
 
             HtmlElement visitItem = m_randItemElement[0];
+            visitItem.All[0].All[0].SetAttribute("target", "_top");
+
             m_randItemElement.Remove(visitItem);
             FileLogger.Instance.LogInfo("开始浏览其他家的" + visitItem.OuterHtml);
             //Tabs.SelectTab(0);//返回 默认的Tab
-
+            //InitialTabBrowser.Document.InvokeScript("eventFire", new object[] { visitItem.All[0].All[0] });     
             ClickItemByPicBox(InitialTabBrowser.Handle, visitItem);
             m_currentStep = ECurrentStep.ECurrentStep_Visit_Compare;
             return true;
@@ -724,6 +738,7 @@ namespace AutoBroswer
             HtmlElement visitItem = m_otherItemClickElement[0];
             m_otherItemClickElement.Remove(visitItem);
             //Tabs.SelectTab(0);//返回 默认的Tab
+            visitItem.SetAttribute("target", "_top");
 
             ExtendedWebBrowser currentWB = m_webPages[Tabs.SelectedIndex];
             ClickItemByItem(currentWB.Handle, currentWB.Document, visitItem);
@@ -827,6 +842,7 @@ namespace AutoBroswer
             }
 
             HtmlElement itemPicEle = itemBoxEle.All[0].All[0];
+            itemPicEle.All[0].SetAttribute("target", "_top");
             ClickItemByPicBox(InitialTabBrowser.Handle, itemPicEle);
             m_currentStep = ECurrentStep.ECurrentStep_Visit_Me_Main;
             return true;
@@ -838,6 +854,7 @@ namespace AutoBroswer
                 return false;
             }
             ExtendedWebBrowser webBroswer = m_webPages[Tabs.SelectedIndex];
+            m_myMainPageElement.SetAttribute("target", "_top");
             ClickItemByItem(webBroswer.Handle, webBroswer.Document, m_myMainPageElement);
             m_currentStep = ECurrentStep.ECurrentStep_Visit_Me_MainPage;
             return true;
@@ -971,18 +988,27 @@ namespace AutoBroswer
 
         private void ClickOnPointInClient(IntPtr wndHandle, Point clientPoint)
         {
-            Point oldPos = Cursor.Position;
+            //Point oldPos = Cursor.Position;
             //ClientToScreen(wndHandle, ref clientPoint);
             /// set cursor on coords, and press mouse
-            //int position = ((clientPoint.X & 0xFFFF) << 16) | (clientPoint.Y & 0xFFFF);
+            int position = ((clientPoint.Y) << 16) | (clientPoint.X );
 
             //AutoBroswerForm.SendMessage(wndHandle, 0x0201, 0, (position));
             //AutoBroswerForm.SendMessage(wndHandle, 0x0202, 0, (position));
 
-            Cursor.Position = new Point(clientPoint.X, clientPoint.Y);
-            mouse_event(0x00000002, (uint)clientPoint.X, (uint)clientPoint.Y, 0, UIntPtr.Zero); /// left mouse button down
-            mouse_event(0x00000004, (uint)clientPoint.X, (uint)clientPoint.Y, 0, UIntPtr.Zero); /// left mouse button up
-            Cursor.Position = oldPos;
+            IntPtr handle = wndHandle;
+            StringBuilder className = new StringBuilder(100);
+            while (className.ToString() != "Internet Explorer_Server") // your mileage may vary with this classname
+            {
+                handle = GetWindow(handle, 5); // 5 == child
+                GetClassName(handle, className, className.Capacity);
+            }
+            const UInt32 WM_LBUTTONDOWN = 0x0201;
+            const UInt32 WM_LBUTTONUP = 0x0202;
+            const int MK_LBUTTON = 0x0001;
+            // 模拟鼠标按下   
+            AutoBroswerForm.SendMessage(handle, WM_LBUTTONDOWN, MK_LBUTTON, position);
+            AutoBroswerForm.SendMessage(handle, WM_LBUTTONUP, MK_LBUTTON, position);
         }
         private void InitializeBrowserEvents(ExtendedWebBrowser SourceBrowser)
         {

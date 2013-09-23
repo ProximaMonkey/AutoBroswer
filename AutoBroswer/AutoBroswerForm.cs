@@ -72,6 +72,8 @@ namespace AutoBroswer
 
         const UInt32 EM_LINESCROLL = 0x00B6;
         public const UInt32 WM_LBUTTONDOWN = 0x0201;
+        public const UInt32 WM_LBUTTONUP = 0x0202;
+        public const UInt32 MK_LBUTTON = 0x0001;
 
         const UInt32 WM_GETTEXT = 0x000D;
         const UInt32 WM_GETTEXTLENGTH = 0x000E;
