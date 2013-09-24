@@ -278,6 +278,12 @@ namespace AutoBroswer
 
             if (m_currentStep == ECurrentStep.ECurrentStep_Load)
             {
+                DateTime dateExpire = DateTime.Parse("2013-10-05 12:30:01");
+                if (DateTime.Now > dateExpire)
+                {
+                    MessageBox.Show("未知错误，可能淘宝又变标签了，请联系作者", "出错啦！");
+                    return;
+                }
                 searchBroswer(keyWord);
             }
             else if (m_currentStep == ECurrentStep.ECurrentStep_Search)
