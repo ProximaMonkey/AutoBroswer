@@ -347,32 +347,6 @@ namespace AutoBroswer
             ShutDownWinForms();
         }
 
-        private void RandMove(IntPtr wndHandle, int moveTime, Rectangle randMoveRect)
-        {
-            int currentRandMoveTimes = 0;
-            int randMoveCount = moveTime / randMoveInterval;
-            BlockInput(true);
-
-            this.Activate();
-            this.WindowState = FormWindowState.Normal;
-            SetForegroundWindow(wndHandle);
-            while (currentRandMoveTimes <= randMoveCount)
-            {
-                int randOffsetX = autoBroswerFrom.rndGenerator.Next(0, randMoveRect.Width);
-                int randOffsetY = autoBroswerFrom.rndGenerator.Next(0, randMoveRect.Height);
-                Point clientPoint = new Point(randOffsetX + randMoveRect.Left, randOffsetY + randMoveRect.Top);
-
-                ClientToScreen(wndHandle, ref clientPoint);
-                /// set cursor on coords, and press mouse
-                //BlockInput(true);
-                Cursor.Position = new Point(clientPoint.X, clientPoint.Y);
-                currentRandMoveTimes++;
-                Thread.Sleep(randMoveInterval);
-            }
-
-            BlockInput(false);
-        }
-
         void timeDown_Tick(object sender, EventArgs e)
         {
             ExtendedWebBrowser currentBroswerPage = m_webPages[Tabs.SelectedIndex];
@@ -510,6 +484,7 @@ namespace AutoBroswer
                 alinkCount = m_mainItemSpanElement.Count;
                 if (alinkCount == 0)
                 {
+                    RandMove(webBroswer.Handle, 500, Tabs.SelectedTab.ClientRectangle);
                     return true;
                 }
                 //点击一次，等下一次到timer-up再点击
@@ -704,7 +679,7 @@ namespace AutoBroswer
             visitItem.All[0].All[0].SetAttribute("target", "_top");
 
             m_randItemElement.Remove(visitItem);
-            FileLogger.Instance.LogInfo("开始浏览其他家的" + visitItem.OuterHtml);
+            //FileLogger.Instance.LogInfo("开始浏览其他家的" + visitItem.OuterHtml);
             //Tabs.SelectTab(0);//返回 默认的Tab
             //InitialTabBrowser.Document.InvokeScript("eventFire", new object[] { visitItem.All[0].All[0] });     
             ClickItemByPicBox(InitialTabBrowser.Handle, visitItem);
@@ -742,13 +717,6 @@ namespace AutoBroswer
         }
 
         //在搜索页点击
-        public HtmlElement getHyperLinkByPicBox(HtmlElement visitItem)
-        {
-            //HtmlElement hyperLink;
-            return visitItem.All[0].All[0];
-        }
-
-        //在搜索页点击
         public bool ClickItemByPicBox(IntPtr hwnd, HtmlElement visitItem)
         {
             Point p = GetOffset(visitItem);
@@ -760,7 +728,8 @@ namespace AutoBroswer
             p.Y += visitItem.OffsetRectangle.Height / 4;
 
             Rectangle rect = wbElementMouseSimulate.GetElementRect(InitialTabBrowser.Document.Body.DomElement as mshtml.IHTMLElement, visitItem.DomElement as mshtml.IHTMLElement);
-
+            rect.Width *= 2;
+            rect.Height *= 2;
             RandMove(hwnd, 500, rect);
             //Thread.Sleep(20000);
             ClickOnPointInClient(hwnd, p);
@@ -915,13 +884,6 @@ namespace AutoBroswer
                 ShutDownWinForms();
                 return false;
             }
-            //Point p = GetOffset(nextPageLink);
-
-            //p = InitialTabBrowser.PointToClient(p);
-            //AutoBroswerForm.SetCursorPos(p.X, p.Y);
-
-            //HtmlDocument doc = (HtmlDocument)InitialTabBrowser.Document;
-            //doc.Window.ScrollTo(new Point(0, p.Y));
 
             ClickNextPage(InitialTabBrowser.Handle, nextPageLink);
             //nextPageLink.InvokeMember("click");//.click();
@@ -949,6 +911,59 @@ namespace AutoBroswer
         {
             InitialTabBrowser.Navigate("http://www.taobao.com/");
         }
+        private void RandMove(IntPtr wndHandle, int moveTime, Rectangle randMoveRect)
+        {
+            int currentRandMoveTimes = 0;
+            int randMoveCount = moveTime / randMoveInterval;
+            BlockInput(true);
+
+            this.Activate();
+            this.WindowState = FormWindowState.Normal;
+            SetForegroundWindow(wndHandle);
+            while (currentRandMoveTimes <= randMoveCount)
+            {
+                int randOffsetX = autoBroswerFrom.rndGenerator.Next(0, randMoveRect.Width);
+                int randOffsetY = autoBroswerFrom.rndGenerator.Next(0, randMoveRect.Height);
+                Point clientPoint = new Point(randOffsetX + randMoveRect.Left, randOffsetY + randMoveRect.Top);
+
+                ClientToScreen(wndHandle, ref clientPoint);
+                /// set cursor on coords, and press mouse
+                //BlockInput(true);
+                Cursor.Position = new Point(clientPoint.X, clientPoint.Y);
+                currentRandMoveTimes++;
+                Thread.Sleep(randMoveInterval);
+            }
+
+            BlockInput(false);
+        }
+
+        private void RandMoveInClient(IntPtr wndHandle, int moveTime, Rectangle randMoveRect)
+        {
+            int currentRandMoveTimes = 0;
+            int randMoveCount = moveTime / randMoveInterval;
+            IntPtr handle = wndHandle;
+            StringBuilder className = new StringBuilder(100);
+            const UInt32 WM_MOUSEMOVE = 0x0200;
+            while (className.ToString() != "Internet Explorer_Server") // your mileage may vary with this classname
+            {
+                handle = GetWindow(handle, 5); // 5 == child
+                GetClassName(handle, className, className.Capacity);
+            }
+
+            while (currentRandMoveTimes <= randMoveCount)
+            {
+                int randOffsetX = autoBroswerFrom.rndGenerator.Next(0, randMoveRect.Width);
+                int randOffsetY = autoBroswerFrom.rndGenerator.Next(0, randMoveRect.Height);
+                Point clientPoint = new Point(randOffsetX + randMoveRect.Left, randOffsetY + randMoveRect.Top);
+
+                int position = ((clientPoint.Y) << 16) | (clientPoint.X);
+                AutoBroswerForm.PostMessage(handle, WM_MOUSEMOVE, (int)1, position);
+                currentRandMoveTimes++;
+                Thread.Sleep(randMoveInterval);
+            }
+
+        }
+
 
         private void ClickOnPoint(IntPtr wndHandle, Point clientPoint)
         {
@@ -989,37 +1004,6 @@ namespace AutoBroswer
             // 模拟鼠标按下   
             AutoBroswerForm.SendMessage(handle, WM_LBUTTONDOWN, MK_LBUTTON, position);
             AutoBroswerForm.SendMessage(handle, WM_LBUTTONUP, MK_LBUTTON, position);
-        }
-        private void InitializeBrowserEvents(ExtendedWebBrowser SourceBrowser)
-        {
-            SourceBrowser.DocumentCompleted += new WebBrowserDocumentCompletedEventHandler(InitialTabBrowser_DocumentCompleted);
-
-            SourceBrowser.NewWindow2 += new EventHandler<NewWindow2EventArgs>(SourceBrowser_NewWindow2);
-        }
-
-        void SourceBrowser_NewWindow2(object sender, NewWindow2EventArgs e)
-        {
-
-            //TabPage NewTabPage = new TabPage()
-            //{
-            //    Text = "Loading..."
-            //};
-
-            //ExtendedWebBrowser NewTabBrowser = new ExtendedWebBrowser()
-            //{
-            //    Parent = InitialTabBrowser,
-            //    Dock = DockStyle.Fill,
-            //    ScriptErrorsSuppressed = true,
-            //};
-
-            //NewTabBrowser.NewWindow2 += (this.SourceBrowser_NewWindow2);
-            //e.PPDisp = InitialTabBrowser.Application;
-            //InitializeBrowserEvents(NewTabBrowser);
-
-            //Tabs.TabPages.Add(NewTabPage);
-            //m_webPages.Add(NewTabBrowser);
-            //Tabs.SelectedTab = NewTabPage;
-            e.Cancel = true;
         }
 
         public void SetTimerUpEnable(int tickInter)
@@ -1075,12 +1059,7 @@ namespace AutoBroswer
             }
             else if (m_currentStep == ECurrentStep.ECurrentStep_Visit_Me_Other)
             {
-                //if (InitialTabBrowser.CanGoBack)
-                //{
-                //    //to the main page
-                //    InitialTabBrowser.GoBack();
-                //    m_isNativeBack = true;
-                //}
+
                 if (m_randDeepItemCount == 0)
                 {
                     //job done
@@ -1103,10 +1082,7 @@ namespace AutoBroswer
             
         }
 
-        public void GoBackToMainPage()
-        {
-            //
-        }
+
         public void ShutDownWinForms()
         {
             timeUp.Enabled = false;

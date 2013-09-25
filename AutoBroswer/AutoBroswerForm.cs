@@ -70,6 +70,11 @@ namespace AutoBroswer
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool IsWindowEnabled(IntPtr hWnd);
 
+        [DllImport("kernel32.dll")]
+        static extern uint GetLastError();
+        [DllImport("user32.dll")]
+        public static extern bool SetForegroundWindow(IntPtr hWnd);
+
         const UInt32 EM_LINESCROLL = 0x00B6;
         public const UInt32 WM_LBUTTONDOWN = 0x0201;
         public const UInt32 WM_LBUTTONUP = 0x0202;
@@ -105,7 +110,7 @@ namespace AutoBroswer
         
         //HTMLDocument currentDoc;
 
-        
+        private int m_waitMessageTick = 300;//300ms
         public AutoBroswerForm()
         {
             InitializeComponent();
@@ -158,6 +163,7 @@ namespace AutoBroswer
             bool bRet = false;
             keywordCollection.Clear();
             loadKeyWord();
+            //runNiuBDASHI();
             int expireTimer = getExpireTime() * 60 * 1000;
             if (isDebugCB.Checked == false)
             {
@@ -216,6 +222,7 @@ namespace AutoBroswer
                 {
                     bRet = disconnectVPN();
                     bRet = runCClean();
+                    bRet = runNiuBDASHI();
                 }
                 
                 FileLogger.Instance.LogInfo("cookie清理干净了，下一个任务!");
@@ -246,6 +253,59 @@ namespace AutoBroswer
                 FileLogger.Instance.LogInfo("cclean 没有开启");
                 return false;
             }
+            return true;
+        }
+        public bool isNiuBRunning()
+        {
+            IntPtr niuBMainHWND = FindWindow(null, "牛B硬件信息修改大师");
+            if (niuBMainHWND == IntPtr.Zero)
+            {
+                FileLogger.Instance.LogInfo("牛逼大师 没有开启");
+                return false;
+            }
+            return true;
+        }
+        public bool runNiuBDASHI()
+        {
+            IntPtr niuBMainHWND = FindWindow(null, "牛B硬件信息修改大师");
+            if (niuBMainHWND == IntPtr.Zero)
+            {
+                return false;
+            }
+            IntPtr beginChangeHWND = FindWindowEx(niuBMainHWND, IntPtr.Zero, "Button", "一键修改");
+            if (beginChangeHWND == IntPtr.Zero)
+            {
+                return false;
+            }
+            const UInt32 WM_LBUTTONDOWN = 0x0201;
+            const UInt32 WM_LBUTTONUP = 0x0202;
+            const int MK_LBUTTON = 0x0001;
+            // 模拟鼠标按下   
+            SetForegroundWindow(beginChangeHWND);
+            AutoBroswerForm.PostMessage(beginChangeHWND, WM_LBUTTONDOWN, (int)MK_LBUTTON, 0);
+            AutoBroswerForm.PostMessage(beginChangeHWND, WM_LBUTTONUP, (int)MK_LBUTTON, 0);
+            //bool ret = PostMessage(beginChangeHWND, BM_CLICK, 0, 0);
+
+            int index = 0;
+            int maxTimes = 20;//最多等6秒
+            bool isChangeDone = false;
+            while (!isChangeDone && index <= maxTimes)
+            {
+                Thread.Sleep(m_waitMessageTick);
+                //check if the beginCleanBtnHWND is enable?
+                IntPtr infoDlgHWND = FindWindowEx(IntPtr.Zero, IntPtr.Zero, "#32770", "Information");
+                if (infoDlgHWND != IntPtr.Zero)
+                {
+                    IntPtr okBtnHWND = FindWindowEx(infoDlgHWND, IntPtr.Zero, "Button", "确定");
+                    if (okBtnHWND != IntPtr.Zero)
+                    {
+                        SendMessage(okBtnHWND, BM_CLICK, 0, 0);
+                        isChangeDone = true;
+                    }
+                }
+                index++;
+            }
+
             return true;
         }
         public bool runCClean()
