@@ -154,6 +154,7 @@ namespace AutoBroswer
         StringBuilder curSelectComboboxName = new StringBuilder(256, 256);
         private void button1_Click(object sender, EventArgs e)
         {
+            
             bool bRet = false;
             keywordCollection.Clear();
             loadKeyWord();
@@ -178,6 +179,7 @@ namespace AutoBroswer
             int uaCollectCount = broswerUACollection.Count;
             for (int index = 0; index < loopCnt; index++)
             {
+                
                 //int for loop
                 string keyWord = getRandKeyWord();
                 if (keyWord == "")

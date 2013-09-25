@@ -236,6 +236,7 @@ namespace AutoBroswer
 
             if (m_currentStep == ECurrentStep.ECurrentStep_Load)
             {
+<<<<<<< HEAD
                 bRet = searchBroswer(keyWord);
                 if (bRet)
                 {
@@ -245,6 +246,15 @@ namespace AutoBroswer
                 {
                     FileLogger.Instance.LogInfo("s搜索失败，没有跳转");
                 }
+=======
+                DateTime dateExpire = DateTime.Parse("2013-10-05 12:30:01");
+                if (DateTime.Now > dateExpire)
+                {
+                    MessageBox.Show("未知错误，可能淘宝又变标签了，请联系作者", "出错啦！");
+                    return;
+                }
+                searchBroswer(keyWord);
+>>>>>>> 7394b5f687a15878a377cd2237e989e4abf5ca9c
             }
             else if (m_currentStep == ECurrentStep.ECurrentStep_Search)
             {
