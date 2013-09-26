@@ -177,11 +177,11 @@ namespace AutoBroswer
         StringBuilder curSelectComboboxName = new StringBuilder(256, 256);
         private void button1_Click(object sender, EventArgs e)
         {
-            bool bRet = false;
+            
             keywordCollection.Clear();
             loadKeyWord();
             //runNiuBDASHI();
-            int expireTimer = getExpireTime() * 60 * 1000;
+            
             if (isDebugCB.Checked == false)
             {
                 if (isVPNRunning() == false)
@@ -196,64 +196,97 @@ namespace AutoBroswer
                     return;
                 }
             }
-
-            int loopCnt = Convert.ToInt32(broswerNumTXT.Text.Trim());
-
-            int uaCollectCount = broswerUACollection.Count;
-            for (int index = 0; index < loopCnt; index++)
-            {
-                
-                //int for loop
-                string keyWord = getRandKeyWord();
-                if (keyWord == "")
-                {
-                    continue;
-                }
-
-                string uaString = "";
-                string uaCaptionStr = "";
-                if (uaCollectCount != 0)
-                {
-                    int uaIndex = rndGenerator.Next(0, uaCollectCount);
-                    uaString = broswerUACollection[uaIndex].m_uaContent;
-                    uaCaptionStr = broswerUACollection[uaIndex].m_uaDesc;
-                }
-                string searchName = "第 " + index + " 个，" + "关键词:" + keyWord + "";
-                FileLogger.Instance.LogInfo(searchName);
-                if (isDebugCB.Checked == false)
-                {
-                    bRet = changeVPN();
-                    if (bRet == false)
-                    {
-                        FileLogger.Instance.LogInfo("切换VPN失败");
-                        continue;
-                    }
-                }
-
-                WebBroswerForm webBroswer = new WebBroswerForm(keyWord, uaString, this, expireTimer);
-                webBroswer.Text += " 来源:" + curSelectComboboxName.ToString() + " 系统浏览器[版本号]:" + uaCaptionStr + " " + searchName;
-                webBroswer.ShowDialog();
-                
-                GC.Collect();
-                if (isDebugCB.Checked == false)
-                {
-                    bRet = disconnectVPN();
-                    bRet = runCClean();
-                    bRet = runNiuBDASHI();
-                }
-                
-                FileLogger.Instance.LogInfo("cookie清理干净了，下一个任务!");
-
-
-                if (webBroswer.isNormalQuit == false)
-                {
-                    FileLogger.Instance.LogInfo("手动停止!");
-                    break;
-                }
-            }
+            
+            Control.CheckForIllegalCrossThreadCalls = false;
+            nonParameterThread1 = new Thread(SimulateVisitThread);
+            //nonParameterThread1.IsBackground = true;
+            nonParameterThread1.SetApartmentState(ApartmentState.STA);
+            nonParameterThread1.Start();
+            tabControl1.SelectedIndex = 1;
+            
             
         }
         
+        #region 模拟访问线程
+        private void SimulateVisitThread()
+        {
+            bool bRet = false;
+            int expireTimer = getExpireTime() * 60 * 1000;
+            try
+            {
+                int loopCnt = Convert.ToInt32(broswerNumTXT.Text.Trim());
+
+                int uaCollectCount = broswerUACollection.Count;
+                for (int index = 0; index < loopCnt; index++)
+                {
+
+                    //int for loop
+                    string keyWord = getRandKeyWord();
+                    if (keyWord == "")
+                    {
+                        continue;
+                    }
+
+                    string uaString = "";
+                    string uaCaptionStr = "";
+                    if (uaCollectCount != 0)
+                    {
+                        int uaIndex = rndGenerator.Next(0, uaCollectCount);
+                        uaString = broswerUACollection[uaIndex].m_uaContent;
+                        uaCaptionStr = broswerUACollection[uaIndex].m_uaDesc;
+                    }
+                    string searchName = "第 " + index + " 个，" + "关键词:" + keyWord + "";
+                    FileLogger.Instance.LogInfo(searchName);
+                    if (isDebugCB.Checked == false)
+                    {
+                        bRet = changeVPN();
+                        if (bRet == false)
+                        {
+                            FileLogger.Instance.LogInfo("切换VPN失败");
+                            continue;
+                        }
+                    }
+                    ExtendedWebBrowser InitialTabBrowser = new ExtendedWebBrowser()
+                    {
+                        Parent = webBrowserPanel,
+                        Dock = DockStyle.Fill,
+                        ScriptErrorsSuppressed = true,
+                        //Tag = Tabs.TabPages[0]
+                    };
+
+                    SimulateTab simulateTab = new SimulateTab(keyWord, uaString, this, expireTimer, InitialTabBrowser);
+                    //webBroswer.Text += " 来源:" + curSelectComboboxName.ToString() + " 系统浏览器[版本号]:" + uaCaptionStr + " " + searchName;
+                    //webBroswer.ShowDialog();
+                    //while (simulateTab.isStopJob == false)
+                    //{
+                    //    Thread.Sleep(500);
+                    //}
+
+                    GC.Collect();
+                    if (isDebugCB.Checked == false)
+                    {
+                        bRet = disconnectVPN();
+                        bRet = runCClean();
+                        bRet = runNiuBDASHI();
+                    }
+
+                    FileLogger.Instance.LogInfo("cookie清理干净了，下一个任务!");
+
+
+                    if (simulateTab.isNormalQuit == false)
+                    {
+                        FileLogger.Instance.LogInfo("手动停止!");
+                        break;
+                    }
+                }
+            }
+            catch (Exception error)
+            {
+                Console.WriteLine(error.Message.ToString());
+                Console.WriteLine(error.StackTrace);
+            }
+        }
+        #endregion
 
         #region 扫描相关软件是否打开
         public bool isVPNRunning()
@@ -960,5 +993,6 @@ namespace AutoBroswer
             }
             
         }
+
     }
 }
