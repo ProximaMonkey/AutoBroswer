@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>9.0.30729</ProductVersion>
+    <ProductVersion>9.0.21022</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{782E50FB-F668-43B2-A939-47300B3F5326}</ProjectGuid>
     <OutputType>WinExe</OutputType>
@@ -80,6 +80,7 @@
     </Compile>
     <Compile Include="FileLogger.cs" />
     <Compile Include="invalidcode.cs" />
+    <Compile Include="IpModel.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="AutoBroswerForm.resx">
@@ -159,6 +160,12 @@
       <ProductName>Windows Installer 3.1</ProductName>
       <Install>true</Install>
     </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\HtmlAgilityPack\HtmlAgilityPack.csproj">
+      <Project>{193BB801-054F-4729-9D5D-FCE1E32594BF}</Project>
+      <Name>HtmlAgilityPack</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -13,13 +13,19 @@ using SHDocVw;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.IO;
-using System.Text.RegularExpressions; //
+using System.Text.RegularExpressions;
+using System.Net;
+using HtmlAgilityPack;
+using System.Net.Sockets;
+using Microsoft.Win32; //
 
 namespace AutoBroswer
 {
 //
     public partial class AutoBroswerForm : Form
     {
+        #region winapi
+
         [DllImport("User32.dll", EntryPoint = "FindWindow")]
         public static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
         [DllImport("User32.dll", EntryPoint = "FindWindowEx")]
@@ -75,6 +81,13 @@ namespace AutoBroswer
         [DllImport("user32.dll")]
         public static extern bool SetForegroundWindow(IntPtr hWnd);
 
+        [DllImport(@"wininet", SetLastError = true, CharSet = CharSet.Auto, EntryPoint = "InternetSetOption",
+                    CallingConvention = CallingConvention.StdCall)]
+        public static extern bool InternetSetOption(int hInternet,
+                                                int dmOption,
+                                                IntPtr lpBuffer,
+                                                int dwBufferLength);
+
         const UInt32 EM_LINESCROLL = 0x00B6;
         public const UInt32 WM_LBUTTONDOWN = 0x0201;
         public const UInt32 WM_LBUTTONUP = 0x0202;
@@ -96,6 +109,8 @@ namespace AutoBroswer
         const UInt32 SW_MAXIMIZE = 3;
         const UInt32 SW_HIDE = 0;
         const UInt32 SW_MINIMIZE = 6;
+        #endregion
+
         private string m_uaBroswerPattern = @"(.*)=(.*)";
         Regex m_uaBroswerRegex;
 
@@ -106,9 +121,11 @@ namespace AutoBroswer
         }
         List<string> keywordCollection = new List<string>();
         List<STBroserInfo> broswerUACollection = new List<STBroserInfo>();
-        //int current = 0;
-        
-        //HTMLDocument currentDoc;
+        enum EIPSelect
+        {
+            EIPSelect_91VPN,
+            EIPSelect_vipiu,
+        }
 
         private int m_waitMessageTick = 300;//300ms
         public AutoBroswerForm()
@@ -120,6 +137,7 @@ namespace AutoBroswer
             int randSeed = ((int)(tick & 0xffffffffL) | (int)(tick >> 32));
             rndGenerator = new Random(randSeed);
             visitDeepCB.SelectedIndex = 2;
+            ipComboBox.SelectedIndex = 1;
             
         }
 
@@ -159,7 +177,6 @@ namespace AutoBroswer
         StringBuilder curSelectComboboxName = new StringBuilder(256, 256);
         private void button1_Click(object sender, EventArgs e)
         {
-            
             bool bRet = false;
             keywordCollection.Clear();
             loadKeyWord();
@@ -236,6 +253,9 @@ namespace AutoBroswer
             }
             
         }
+        
+
+        #region 扫描相关软件是否打开
         public bool isVPNRunning()
         {
             IntPtr vpnMainHWND = FindWindow(null, "91VPN网游加速器商业版 - 3.5.2");
@@ -529,6 +549,9 @@ namespace AutoBroswer
             }
             return title.ToString();
         }
+        #endregion
+
+        #region 获取相应设置
 
         public bool isCompareRandCB()
         {
@@ -581,6 +604,7 @@ namespace AutoBroswer
             Int32.TryParse(jobExpireTimer.Text.Trim(), out value);
             return value;
         }
+        #endregion
 
         private void AutoBroswerForm_Load(object sender, EventArgs e)
         {
@@ -631,5 +655,310 @@ namespace AutoBroswer
             }
         }
 
+        
+        /// <summary>
+        /// 匹配指定字符之间的字符串
+        /// </summary>
+        /// <param name="code">html源码</param>
+        /// <param name="wordsBegin">开始字符串</param>
+        /// <param name="wordsEnd">结束字符串</param>
+        /// <returns></returns>
+        List<string> SniffwebCode(string code, string wordsBegin, string wordsEnd)
+        {
+            List<string> listurl = new List<string>();
+            Regex regex1 = new Regex("" + wordsBegin + @"(?<content>[\s\S]+?)" + wordsEnd + "", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            for (Match match1 = regex1.Match(code); match1.Success; match1 = match1.NextMatch())
+            {
+                if (!listurl.Contains(match1.Groups[1].Value))
+                {
+                    listurl.Add(match1.Groups["content"].ToString());
+                }
+            }
+            return listurl;
+        }
+
+        public static bool SoketConnect(string host, int port)
+        {
+            var is_success = false;
+            try
+            {
+                var connsock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                connsock.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.SendTimeout, 200);
+                System.Threading.Thread.Sleep(500);
+                var hip = IPAddress.Parse(host);
+                var ipep = new IPEndPoint(hip, port);
+                connsock.Connect(ipep);
+                if (connsock.Connected)
+                {
+                    is_success = true;
+                }
+                connsock.Close();
+            }
+            catch (Exception)
+            {
+                is_success = false;
+            }
+            return is_success;
+        }
+
+        private String verifyProxy(string IP, int port)
+        {
+            bool isok = true;
+            string rs = null;
+            while (isok)
+            {
+                try
+                {
+                    //设置代理IP
+                    WebProxy proxyObject = new WebProxy(IP, port);
+                    //向指定地址发送请求
+                    HttpWebRequest HttpWReq = (HttpWebRequest)WebRequest.Create("http://www.baidu.com");
+                    HttpWReq.Proxy = proxyObject;
+                    HttpWebResponse HttpWResp = (HttpWebResponse)HttpWReq.GetResponse();
+                    HttpWReq.Timeout = 10000;
+                    StreamReader sr = new StreamReader(HttpWResp.GetResponseStream(), System.Text.Encoding.GetEncoding("UTF-8"));
+                    string xmlContent = sr.ReadToEnd().Trim();
+                    sr.Close();
+                    HttpWResp.Close();
+                    HttpWReq.Abort();
+                    rs = xmlContent;
+                    isok = false;
+                }
+                catch (Exception)
+                {
+                    isok = false;
+                    rs = "Error";
+                }
+            }
+            return rs;
+        }
+
+        private void getIPBtn_Click(object sender, EventArgs e)
+        {
+            Control.CheckForIllegalCrossThreadCalls = false;
+            nonParameterThread1 = new Thread(GetDataThread);
+            nonParameterThread1.IsBackground = true;
+            nonParameterThread1.Start();
+            this.beginBTN.Enabled = false;
+            //timer1.Interval = 1000;
+            //timer1.Start();
+            
+        }
+        Thread nonParameterThread1 = null;
+        private void GetDataThread()
+        {
+            HtmlAgilityPack.HtmlWeb hw = new HtmlAgilityPack.HtmlWeb();
+            hw.AutoDetectEncoding = false;
+
+            //  HtmlAgilityPack.HtmlDocument doccc = hw.Load("http://www.youdaili.cn/");
+            HttpWebRequest req;
+            req = WebRequest.Create(new Uri(@"http://www.youdaili.cn/")) as HttpWebRequest;
+            req.Method = "GET";
+
+            HttpWebResponse rs = (HttpWebResponse)req.GetResponse();
+
+
+            System.IO.StreamReader sr = new StreamReader(rs.GetResponseStream(), System.Text.Encoding.GetEncoding("utf-8"));
+
+            try
+            {
+                HtmlAgilityPack.HtmlDocument doc = new HtmlAgilityPack.HtmlDocument();
+                doc.Load(sr);
+
+                GetHrefs(doc);
+                if (iplist.Count <= 10)
+                {
+                    MessageBox.Show("IP太少了", "infomation");
+                }
+                saveIPToFile();
+            }
+            catch (Exception error)
+            {
+                Console.WriteLine(error.Message.ToString());
+                Console.WriteLine(error.StackTrace);
+            }
+        }
+        List<IpUrl> IpUrlList = new List<IpUrl>();
+        List<IpModel> iplist = new List<IpModel>();
+        int xxcount = 1;
+        private void GetHrefs(HtmlAgilityPack.HtmlDocument _doc)
+        {
+            string todaydaili = DateTime.Now.ToString("MM-dd");
+            string yestodaydaili = DateTime.Now.Date.AddDays(-1).ToString("MM-dd");
+            HtmlNodeCollection hrefs = _doc.DocumentNode.SelectNodes("//ul/li/a");
+            if (hrefs == null)
+                return;
+
+            foreach (HtmlNode href in hrefs)
+            {
+                if (href.Attributes["title"] != null && href.Attributes["href"] != null)
+                {
+                    string tilte = href.Attributes["title"].Value;
+                    string urll = href.Attributes["href"].Value;
+                    if ((tilte.IndexOf(todaydaili) >= 0 || (tilte.IndexOf(yestodaydaili) >= 0 )&& urll.Length > 0))
+                    {
+                        IpUrl model = new IpUrl();
+                        if (urll.IndexOf("guonei") > 0)
+                        {
+                            model.DaiLi = 0;
+                            model.Url = urll;
+                            IpUrlList.Add(model);
+                        }
+                        if (urll.IndexOf("guowai") > 0)
+                        {
+                            model.DaiLi = 1;
+                            model.Url = urll;
+                            IpUrlList.Add(model);
+                        }
+                    }
+                }
+            }
+            string url = "";
+
+            int tmppage = 1;
+            foreach (IpUrl urla in IpUrlList)
+            {
+
+                for (int startpage = 1; startpage <= 10; startpage++)
+                {
+                    //this.lb_result.Text = "正在采集第" + tmppage.ToString() + "页IP列表请稍后.........";
+                    url = urla.Url.Replace(".html", "");
+                    if (tmppage != 1)
+                    {
+                        url = url + "_" + startpage.ToString() + ".html";
+                    }
+                    else
+                    {
+                        url = url + ".html";
+                    }
+                    CaiJiIp(url, tmppage, urla.DaiLi);
+                    tmppage++;
+                }
+            }
+            //this.lb_result.Text = "本次采集采集完毕！";
+            this.beginBTN.Enabled = true;
+            //this.timer1.Stop();
+        }
+        private void CaiJiIp(string url, int nowpage, int dailitype)
+        {
+            #region start 采集IP列表页内容
+            WebResponse result = null;
+            string resultstring = "";
+            try
+            {
+                WebRequest req = WebRequest.Create(url);
+                req.Timeout = 8000;
+                result = req.GetResponse();
+                //FileLogger.Instance.LogInfo("第" + nowpage.ToString() + "页IP列表网页代码正在GetResponseStream解析.......");
+                Stream ReceiveStream = result.GetResponseStream();
+                //FileLogger.Instance.LogInfo("第" + nowpage.ToString() + "页IP列表网页代码解析完成.......");
+                string strEncod = result.ContentType;
+                StreamReader sr = new StreamReader(ReceiveStream, System.Text.Encoding.UTF8);
+                //FileLogger.Instance.LogInfo("第" + nowpage.ToString() + "页IP列表网页代码解析后正在读取.......");
+                resultstring = sr.ReadToEnd();
+                //FileLogger.Instance.LogInfo("第" + nowpage.ToString() + "页IP列表网页代码解析后读取完毕.......");
+            }
+            catch(Exception error)
+            {
+                Console.WriteLine(error.Message);
+                //FileLogger.Instance.LogInfo("获取IP列表请求超时,请重新尝试采集！");
+                //this.btn_start.Enabled = true;
+                //this.btn_stop.Enabled = false;
+            }
+            finally
+            {
+                if (result != null)
+                {
+                    result.Close();
+                }
+            }
+            #endregion end采集IP列表页内容
+
+            List<string> listurl = SniffwebCode(resultstring, "<br />", "@HTTP#【匿】");
+            foreach (string xx in listurl)
+            {
+                var strxx = xx.Replace("\r\n", "");
+                string[] arr = xx.Split(':');
+                IpModel ipmodel = new IpModel();
+                ipmodel.Ip = arr[0].Replace("\r", "").Replace("\n", "").Trim();
+                ipmodel.IpPort = arr[1];
+                int ipPort = 1;
+                Int32.TryParse(ipmodel.IpPort.Trim(), out ipPort);
+                var ipresult = verifyProxy(ipmodel.Ip, ipPort);
+                if (ipresult == null || ipresult == "Error")
+                {
+                    continue;
+                }
+                //ComboBoxItem item = cbx_caijitype.SelectedItem as ComboBoxItem;
+                ipmodel.IpType = 1;//国内//int.Parse(item.Value.ToString());
+                ipmodel.IsUse = 1;
+                ipmodel.DaiLiType = dailitype;
+                //Createitem(ipmodel);
+                FileLogger.Instance.LogInfo("第" + xxcount.ToString() + "个IP正在入库.......");
+                //   Maticsoft.BLL.Ip bllip = new Maticsoft.BLL.Ip();
+                if (iplist.SingleOrDefault(a => a.Ip == ipmodel.Ip) == null)
+                {
+                    iplist.Add(ipmodel);
+                    //bllip.Add(ipmodel);
+                    xxcount++;
+                    //FileLogger.Instance.LogInfo("第" + xxcount.ToString() + "个IP入库成功.......");
+                    //FileLogger.Instance.LogInfo("已经成功采集" + xxcount.ToString() + "条");
+                }
+                else
+                {
+                    FileLogger.Instance.LogInfo("已存在,已经成功采集" + xxcount.ToString() + "条");
+                }
+            }
+            FileLogger.Instance.LogInfo("第" + nowpage.ToString() + "页：开始遍历采集会员信息.......");
+
+        }
+
+        public void SetProxy(string ip_port)
+        {
+            //打开注册表
+            RegistryKey regKey = Registry.CurrentUser;
+            string SubKeyPath = @"Software\Microsoft\Windows\CurrentVersion\Internet Settings";
+            RegistryKey optionKey = regKey.OpenSubKey(SubKeyPath, true);
+            //更改健值，设置代理，
+            optionKey.SetValue("ProxyEnable", 1);
+            if (ip_port.Length == 0)
+            {
+                optionKey.SetValue("ProxyEnable", 0);
+            }
+            optionKey.SetValue("ProxyServer", ip_port);
+
+            //激活代理设置
+            InternetSetOption(0, 39, IntPtr.Zero, 0);
+            InternetSetOption(0, 37, IntPtr.Zero, 0);
+        }
+
+        private void stopIPBtn_Click(object sender, EventArgs e)
+        {
+            if (this.stopIPBtn.Text != "恢复获取IP")
+            {
+                nonParameterThread1.Suspend();
+                this.stopIPBtn.Text = "恢复获取IP";
+                this.beginBTN.Enabled = true;
+            }
+            else
+            {
+                nonParameterThread1.Resume();
+                this.stopIPBtn.Text = "停止获取IP";
+                this.beginBTN.Enabled = false;
+            }
+        }
+
+        private void saveIPToFile()
+        {
+            using (StreamWriter writer = new StreamWriter("dailiIP.txt", true))
+            {
+                foreach (IpModel ip in iplist)
+                {
+                    writer.WriteLine(ip.Ip + ":"+ip.IpPort);
+                }
+                
+            }
+            
+        }
     }
 }

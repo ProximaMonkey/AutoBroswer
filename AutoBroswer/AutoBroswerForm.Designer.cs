@@ -49,6 +49,10 @@
             this.jobExpireTimer = new System.Windows.Forms.TextBox();
             this.label8 = new System.Windows.Forms.Label();
             this.isDebugCB = new System.Windows.Forms.CheckBox();
+            this.ipComboBox = new System.Windows.Forms.ComboBox();
+            this.IP = new System.Windows.Forms.Label();
+            this.getIPBtn = new System.Windows.Forms.Button();
+            this.stopIPBtn = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // beginBTN
@@ -66,7 +70,7 @@
             this.compareCB.AutoSize = true;
             this.compareCB.Checked = true;
             this.compareCB.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.compareCB.Location = new System.Drawing.Point(251, 13);
+            this.compareCB.Location = new System.Drawing.Point(251, 52);
             this.compareCB.Name = "compareCB";
             this.compareCB.Size = new System.Drawing.Size(96, 16);
             this.compareCB.TabIndex = 1;
@@ -76,7 +80,7 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(246, 61);
+            this.label1.Location = new System.Drawing.Point(246, 100);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(53, 12);
             this.label1.TabIndex = 2;
@@ -85,7 +89,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(246, 87);
+            this.label2.Location = new System.Drawing.Point(246, 126);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(65, 12);
             this.label2.TabIndex = 3;
@@ -94,7 +98,7 @@
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(246, 203);
+            this.label3.Location = new System.Drawing.Point(246, 242);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(47, 12);
             this.label3.TabIndex = 5;
@@ -102,7 +106,7 @@
             // 
             // broswerNumTXT
             // 
-            this.broswerNumTXT.Location = new System.Drawing.Point(318, 200);
+            this.broswerNumTXT.Location = new System.Drawing.Point(318, 239);
             this.broswerNumTXT.Name = "broswerNumTXT";
             this.broswerNumTXT.Size = new System.Drawing.Size(44, 21);
             this.broswerNumTXT.TabIndex = 6;
@@ -120,14 +124,14 @@
             "3",
             "4",
             "5"});
-            this.visitDeepCB.Location = new System.Drawing.Point(317, 58);
+            this.visitDeepCB.Location = new System.Drawing.Point(317, 97);
             this.visitDeepCB.Name = "visitDeepCB";
             this.visitDeepCB.Size = new System.Drawing.Size(70, 20);
             this.visitDeepCB.TabIndex = 7;
             // 
             // mainItemMinTimeTXT
             // 
-            this.mainItemMinTimeTXT.Location = new System.Drawing.Point(317, 84);
+            this.mainItemMinTimeTXT.Location = new System.Drawing.Point(317, 123);
             this.mainItemMinTimeTXT.MaxLength = 3;
             this.mainItemMinTimeTXT.Name = "mainItemMinTimeTXT";
             this.mainItemMinTimeTXT.Size = new System.Drawing.Size(44, 21);
@@ -137,7 +141,7 @@
             // 
             // mainItemMaxTimeTXT
             // 
-            this.mainItemMaxTimeTXT.Location = new System.Drawing.Point(393, 84);
+            this.mainItemMaxTimeTXT.Location = new System.Drawing.Point(393, 123);
             this.mainItemMaxTimeTXT.Name = "mainItemMaxTimeTXT";
             this.mainItemMaxTimeTXT.Size = new System.Drawing.Size(41, 21);
             this.mainItemMaxTimeTXT.TabIndex = 9;
@@ -147,7 +151,7 @@
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(370, 87);
+            this.label4.Location = new System.Drawing.Point(370, 126);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(17, 12);
             this.label4.TabIndex = 10;
@@ -158,7 +162,7 @@
             this.visitDeepRndCheckBox.AutoSize = true;
             this.visitDeepRndCheckBox.Checked = true;
             this.visitDeepRndCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.visitDeepRndCheckBox.Location = new System.Drawing.Point(403, 62);
+            this.visitDeepRndCheckBox.Location = new System.Drawing.Point(403, 101);
             this.visitDeepRndCheckBox.Name = "visitDeepRndCheckBox";
             this.visitDeepRndCheckBox.Size = new System.Drawing.Size(72, 16);
             this.visitDeepRndCheckBox.TabIndex = 11;
@@ -168,7 +172,7 @@
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(370, 114);
+            this.label5.Location = new System.Drawing.Point(370, 153);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(17, 12);
             this.label5.TabIndex = 15;
@@ -176,7 +180,7 @@
             // 
             // otherItemMaxTimeTXT
             // 
-            this.otherItemMaxTimeTXT.Location = new System.Drawing.Point(393, 111);
+            this.otherItemMaxTimeTXT.Location = new System.Drawing.Point(393, 150);
             this.otherItemMaxTimeTXT.Name = "otherItemMaxTimeTXT";
             this.otherItemMaxTimeTXT.Size = new System.Drawing.Size(41, 21);
             this.otherItemMaxTimeTXT.TabIndex = 14;
@@ -185,7 +189,7 @@
             // 
             // otherItemMinTimeTXT
             // 
-            this.otherItemMinTimeTXT.Location = new System.Drawing.Point(317, 111);
+            this.otherItemMinTimeTXT.Location = new System.Drawing.Point(317, 150);
             this.otherItemMinTimeTXT.MaxLength = 3;
             this.otherItemMinTimeTXT.Name = "otherItemMinTimeTXT";
             this.otherItemMinTimeTXT.Size = new System.Drawing.Size(44, 21);
@@ -196,7 +200,7 @@
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(246, 114);
+            this.label6.Location = new System.Drawing.Point(246, 153);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(77, 12);
             this.label6.TabIndex = 12;
@@ -214,7 +218,7 @@
             // label7
             // 
             this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(246, 146);
+            this.label7.Location = new System.Drawing.Point(246, 185);
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(41, 12);
             this.label7.TabIndex = 17;
@@ -222,7 +226,7 @@
             // 
             // sellerNameTB
             // 
-            this.sellerNameTB.Location = new System.Drawing.Point(317, 143);
+            this.sellerNameTB.Location = new System.Drawing.Point(317, 182);
             this.sellerNameTB.Name = "sellerNameTB";
             this.sellerNameTB.Size = new System.Drawing.Size(158, 21);
             this.sellerNameTB.TabIndex = 18;
@@ -230,7 +234,7 @@
             // 
             // jobExpireTimer
             // 
-            this.jobExpireTimer.Location = new System.Drawing.Point(393, 34);
+            this.jobExpireTimer.Location = new System.Drawing.Point(393, 73);
             this.jobExpireTimer.Name = "jobExpireTimer";
             this.jobExpireTimer.Size = new System.Drawing.Size(65, 21);
             this.jobExpireTimer.TabIndex = 19;
@@ -240,7 +244,7 @@
             // label8
             // 
             this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(246, 37);
+            this.label8.Location = new System.Drawing.Point(246, 76);
             this.label8.Name = "label8";
             this.label8.Size = new System.Drawing.Size(125, 12);
             this.label8.TabIndex = 20;
@@ -249,18 +253,62 @@
             // isDebugCB
             // 
             this.isDebugCB.AutoSize = true;
-            this.isDebugCB.Location = new System.Drawing.Point(380, 13);
+            this.isDebugCB.Location = new System.Drawing.Point(380, 52);
             this.isDebugCB.Name = "isDebugCB";
             this.isDebugCB.Size = new System.Drawing.Size(72, 16);
             this.isDebugCB.TabIndex = 21;
             this.isDebugCB.Text = "是否调试";
             this.isDebugCB.UseVisualStyleBackColor = true;
             // 
+            // ipComboBox
+            // 
+            this.ipComboBox.FormattingEnabled = true;
+            this.ipComboBox.Items.AddRange(new object[] {
+            "91VPN",
+            "http://vipiu.net 免费代理"});
+            this.ipComboBox.Location = new System.Drawing.Point(272, 12);
+            this.ipComboBox.Name = "ipComboBox";
+            this.ipComboBox.Size = new System.Drawing.Size(186, 20);
+            this.ipComboBox.TabIndex = 22;
+            // 
+            // IP
+            // 
+            this.IP.AutoSize = true;
+            this.IP.Location = new System.Drawing.Point(249, 15);
+            this.IP.Name = "IP";
+            this.IP.Size = new System.Drawing.Size(17, 12);
+            this.IP.TabIndex = 23;
+            this.IP.Text = "IP";
+            // 
+            // getIPBtn
+            // 
+            this.getIPBtn.Location = new System.Drawing.Point(464, 10);
+            this.getIPBtn.Name = "getIPBtn";
+            this.getIPBtn.Size = new System.Drawing.Size(75, 23);
+            this.getIPBtn.TabIndex = 24;
+            this.getIPBtn.Text = "获取IP";
+            this.getIPBtn.UseVisualStyleBackColor = true;
+            this.getIPBtn.Click += new System.EventHandler(this.getIPBtn_Click);
+            // 
+            // stopIPBtn
+            // 
+            this.stopIPBtn.Location = new System.Drawing.Point(556, 10);
+            this.stopIPBtn.Name = "stopIPBtn";
+            this.stopIPBtn.Size = new System.Drawing.Size(75, 23);
+            this.stopIPBtn.TabIndex = 25;
+            this.stopIPBtn.Text = "停止获取IP";
+            this.stopIPBtn.UseVisualStyleBackColor = true;
+            this.stopIPBtn.Click += new System.EventHandler(this.stopIPBtn_Click);
+            // 
             // AutoBroswerForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(530, 390);
+            this.ClientSize = new System.Drawing.Size(658, 391);
+            this.Controls.Add(this.stopIPBtn);
+            this.Controls.Add(this.getIPBtn);
+            this.Controls.Add(this.IP);
+            this.Controls.Add(this.ipComboBox);
             this.Controls.Add(this.isDebugCB);
             this.Controls.Add(this.label8);
             this.Controls.Add(this.jobExpireTimer);
@@ -314,6 +362,10 @@
         private System.Windows.Forms.TextBox jobExpireTimer;
         private System.Windows.Forms.Label label8;
         private System.Windows.Forms.CheckBox isDebugCB;
+        private System.Windows.Forms.ComboBox ipComboBox;
+        private System.Windows.Forms.Label IP;
+        private System.Windows.Forms.Button getIPBtn;
+        private System.Windows.Forms.Button stopIPBtn;
     }
 }
 
