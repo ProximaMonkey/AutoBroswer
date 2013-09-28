@@ -7,10 +7,11 @@ using System.Windows.Forms;
 using System.Text.RegularExpressions;
 using System.Drawing;
 using System.Threading;
+using System.IO;
 
 namespace AutoBroswer
 {
-    class SimulateTab
+    class SimulateTab : Form
     {
         System.Windows.Forms.Timer timeDown = new System.Windows.Forms.Timer();
         System.Windows.Forms.Timer timeUp = new System.Windows.Forms.Timer();
@@ -60,13 +61,12 @@ namespace AutoBroswer
         const int millSeconds = 1000;
 
         ExtendedWebBrowser InitialTabBrowser;
-        private List<ExtendedWebBrowser> m_webPages;
 
         private HtmlElement m_myItemElement;//在搜索页的ELEMENT,
         private HtmlElement m_myMainPageElement;//在在主宝贝页面中的首页
         private List<HtmlElement> m_randItemElement;//其它随机宝贝,<p class="pic-box">
         private string[] m_clickLinkItem = { "评价详情", "成交记录", "宝贝详情" };
-        private string[] m_clickMainPageItem = { "首页", "查看所有宝贝", "进入店铺"};
+        private string[] m_clickMainPageItem = { "按销量", "查看所有宝贝", "进入店铺", "按收藏" };
         private string[] m_clickSpanItem = { "物流运费", "销　　量", "评　　价", "宝贝类型", "支　　付" };
 
         private List<HtmlElement> m_mainItemClickElement;//详情页三个模块点击
@@ -95,8 +95,6 @@ namespace AutoBroswer
             m_mainItemSpanElement = new List<HtmlElement>();
             m_otherItemClickElement = new List<HtmlElement>();
 
-            m_webPages = new List<ExtendedWebBrowser>();
-
             pageMoniterTimer.Tick += new EventHandler(PageMoniterTimeEvent);
 
             if (autoBroswerFrom.isCompareRandCB())
@@ -113,10 +111,35 @@ namespace AutoBroswer
             //pageMoniterTimer.Enabled = true;
             return true;
         }
-        public SimulateTab(string inputKeyword, string uaString, AutoBroswerForm _AutoBroswer, int expireTime, ExtendedWebBrowser _initWebBrowser)
+        public SimulateTab(string inputKeyword, string uaString, AutoBroswerForm _AutoBroswer, int expireTime)
         {
+            this.FormBorderStyle = FormBorderStyle.None;
+            this.TopLevel = false;
+            //this.Location = _AutoBroswer.webBrowserPanel.Location;
+            this.Size = _AutoBroswer.webBrowserPanel.Size;
             m_uaString = uaString;
-            InitialTabBrowser = _initWebBrowser;
+
+            
+            //InitialTabBrowser.Location = _AutoBroswer.webBrowserPanel.Location;
+            //InitialTabBrowser.Size = _AutoBroswer.webBrowserPanel.Size;
+            if (_AutoBroswer.webBrowserPanel.InvokeRequired)
+            {
+                _AutoBroswer.webBrowserPanel.BeginInvoke(new MethodInvoker(delegate
+                {
+                    //_AutoBroswer.webBrowserPanel.Controls.Add(this);
+                    this.Parent = _AutoBroswer.webBrowserPanel;
+                    
+                }));
+            }
+            InitialTabBrowser = new ExtendedWebBrowser()
+            {
+                Parent = this,
+                Dock = DockStyle.Fill,
+                ScriptErrorsSuppressed = true,
+                UserAgent = uaString
+                //Tag = Tabs.TabPages[0]
+            };
+            InitialTabBrowser.NavigateError += new AutoBroswer.ExtendedWebBrowser.WebBrowserNavigateErrorEventHandler(InitialTabBrowser_NavigateError);
             InitialTabBrowser.DocumentCompleted += new WebBrowserDocumentCompletedEventHandler(InitialTabBrowser_DocumentCompleted);
             timeDown.Interval = 100;
             timeDown.Tick += new EventHandler(timeDown_Tick);
@@ -131,42 +154,48 @@ namespace AutoBroswer
             keyWord = inputKeyword;
             autoBroswerFrom = _AutoBroswer;
             initValue();
-            //InitializeBrowserEvents(InitialTabBrowser);
-            m_webPages.Add(InitialTabBrowser);
+
             InitialTabBrowser.Navigate("http://www.taobao.com/");
         }
 
         public bool searchBroswer(string keyword)
         {
-            HtmlDocument document = ((HtmlDocument)InitialTabBrowser.Document);
-            HtmlElement textArea = document.GetElementById("q");
-            if (textArea == null)
+            try
             {
-                FileLogger.Instance.LogInfo("找不到搜索输入框标签");
+                HtmlDocument document = ((HtmlDocument)InitialTabBrowser.Document);
+                File.WriteAllText("search.txt", document.Body.OuterHtml.ToString(), Encoding.Default);
+                HtmlElement textArea = document.GetElementById("q");
+                if (textArea == null)
+                {
+                    FileLogger.Instance.LogInfo("找不到搜索输.入框标签");
+                    return false;
+                }
+                FileLogger.Instance.LogInfo("before setInnerText");
+                textArea.InnerText = keyword;
+                FileLogger.Instance.LogInfo("after setInnerText");
+
+                var elements = document.GetElementsByTagName("button");
+                foreach (HtmlElement searchBTN in elements)
+                {
+                    string className = searchBTN.GetAttribute("className");
+                    if (className == "btn-search" || searchBTN.InnerText == "搜 索")
+                    {
+                        FileLogger.Instance.LogInfo("found search button");
+                        Rectangle rect = wbElementMouseSimulate.GetElementRect(document.Body.DomElement as mshtml.IHTMLElement, searchBTN.DomElement as mshtml.IHTMLElement);
+                        Point p = new Point(rect.Left + rect.Width / 2, rect.Top + rect.Height / 2);
+                        RandMove(InitialTabBrowser.Handle, 1000, rect);
+                        ClickOnPointInClient(InitialTabBrowser.Handle, p);
+                        m_currentStep = ECurrentStep.ECurrentStep_Search;
+                        return true;
+                    }
+                }
+                FileLogger.Instance.LogInfo("找不到搜索按钮标签");
                 return false;
             }
-            textArea.InnerText = keyword;
-
-            var elements = document.GetElementsByTagName("button");
-            foreach (HtmlElement searchBTN in elements)
+            catch (System.Exception ex)
             {
-                // If there's more than one button, you can check the
-                //element.InnerHTML to see if it's the one you want
-                string className = searchBTN.GetAttribute("className");
-                if (className == "btn-search" || searchBTN.InnerText == "搜 索")
-                {
-                    int randX = autoBroswerFrom.rndGenerator.Next(0, searchBTN.OffsetRectangle.Width - 1);
-                    int randY = autoBroswerFrom.rndGenerator.Next(0, searchBTN.OffsetRectangle.Height - 1);
-
-                    Rectangle rect = wbElementMouseSimulate.GetElementRect(document.Body.DomElement as mshtml.IHTMLElement, searchBTN.DomElement as mshtml.IHTMLElement);
-                    Point p = new Point(rect.Left + rect.Width / 2, rect.Top + rect.Height / 2);
-                    RandMove(InitialTabBrowser.Handle, 1000, rect);
-                    ClickOnPointInClient(InitialTabBrowser.Handle, p);
-                    m_currentStep = ECurrentStep.ECurrentStep_Search;
-                    return true;
-                }
+                FileLogger.Instance.LogInfo("CatchError:" + ex.Message);
             }
-            FileLogger.Instance.LogInfo("找不到搜索按钮标签");
             return false;
         }
         private Point GetElementPosition(HtmlElement current_element)
@@ -194,19 +223,39 @@ namespace AutoBroswer
             // Ignore the error and suppress the error dialog box. 
             e.Handled = true;
         }
-
+        public void InitialTabBrowser_NavigateError(object sender, WebBrowserNavigateErrorEventArgs e)
+        {
+            // Display an error message to the user.
+            //MessageBox.Show("Cannot navigate to " + e.Url);
+            FileLogger.Instance.LogInfo("load fail:" + e.Url);
+            this.ShutDownWinForms();
+        }
         public void InitialTabBrowser_DocumentCompleted(object sender, WebBrowserDocumentCompletedEventArgs e)
         {
             bool bRet = false;
-            ((WebBrowser)sender).Document.Window.Error += new HtmlElementErrorEventHandler(Window_Error);
-            if (m_currentStep != ECurrentStep.ECurrentStep_Load)
-            {
-                FileLogger.Instance.LogInfo("到这没有1， 状态:" + m_currentStep);
-                if (InitialTabBrowser.ReadyState != WebBrowserReadyState.Complete) return;
-                if ((e.Url.AbsolutePath == "blank") || (e.Url != InitialTabBrowser.Url)) return;
-                if (InitialTabBrowser.Document.Body.All.Count < 10) return;
-            }
-            FileLogger.Instance.LogInfo("到这没有2， 状态:" + m_currentStep);
+            //((WebBrowser)sender).Document.Window.Error += new HtmlElementErrorEventHandler(Window_Error);
+            //if (m_currentStep != ECurrentStep.ECurrentStep_Load && m_currentStep != ECurrentStep.ECurrentStep_Search)
+            //{
+            //    FileLogger.Instance.LogInfo("到这没有1， 状态:" + m_currentStep);
+            //    if (InitialTabBrowser.ReadyState != WebBrowserReadyState.Complete)
+            //    {
+            //        FileLogger.Instance.LogInfo("NotReady");
+            //        return;
+            //    }
+            //    if ((e.Url.AbsolutePath == "blank") || (e.Url != InitialTabBrowser.Url))
+            //    {
+            //        FileLogger.Instance.LogInfo("e.url:" + e.Url.AbsolutePath);
+            //        FileLogger.Instance.LogInfo("e.url:" + InitialTabBrowser.Url.AbsolutePath);
+            //        return;
+            //    }
+            //    if (InitialTabBrowser.Document.Body.All.Count < 10)
+            //    {
+            //        FileLogger.Instance.LogInfo("AllCount <10");
+            //        return;
+            //    }
+            //}
+            FileLogger.Instance.LogInfo("当前步骤:" + m_currentStep);
+            //FileLogger.Instance.LogInfo("Cookie:" + InitialTabBrowser.Document.Cookie);
             autoBroswerFrom.URLTextBox.Text = e.Url.ToString();
 
             if (m_currentStep == ECurrentStep.ECurrentStep_Load)
@@ -235,7 +284,6 @@ namespace AutoBroswer
             }
             else if (m_currentStep == ECurrentStep.ECurrentStep_Visit_Compare)
             {
-                
                 SetTimerDownEnable(50);
                 if (m_isNativeBack)
                 {
@@ -245,6 +293,7 @@ namespace AutoBroswer
                 }
                 else
                 {
+                    
                     autoBroswerFrom.currentStep.Text = "货比三家";
 
                     m_iOtherItemStopTime = autoBroswerFrom.rndGenerator.Next(20, 30);
@@ -673,7 +722,18 @@ namespace AutoBroswer
             Size winSize = InitialTabBrowser.Document.Window.Size;
             InitialTabBrowser.Document.Window.ScrollTo(winSize.Width / 2, p.Y);
             p.Y -= InitialTabBrowser.Document.GetElementsByTagName("HTML")[0].ScrollTop;
+            p.X += visitItem.OffsetRectangle.Width / 2;
+            p.Y += visitItem.OffsetRectangle.Height / 2;
+
+            //Rectangle rect = wbElementMouseSimulate.GetElementRect(InitialTabBrowser.Document.Body.DomElement as mshtml.IHTMLElement, visitItem.DomElement as mshtml.IHTMLElement);
+
+            //p.X = rect.Left + rect.Width / 4;
+            //p.Y = rect.Top + rect.Height / 4;
+            //RandMove(hwnd, 500, rect);
             ClickOnPointInClient(hwnd, p);
+
+            ClientToScreen(hwnd, ref p);
+            Cursor.Position = new Point(p.X, p.Y);
             //ClickOnPoint(hwnd, p);
 
             return true;
@@ -772,6 +832,7 @@ namespace AutoBroswer
                 return false;
             }
             m_myMainPageElement.SetAttribute("target", "_top");
+            FileLogger.Instance.LogInfo("进入首页:" + m_myMainPageElement.InnerHtml);
             ClickItemByItem(InitialTabBrowser.Handle, InitialTabBrowser.Document, m_myMainPageElement);
             m_currentStep = ECurrentStep.ECurrentStep_Visit_Me_MainPage;
             return true;
@@ -847,6 +908,7 @@ namespace AutoBroswer
                 return false;
             }
 
+            nextPageLink = nextPageLink.All[0];
             ClickNextPage(InitialTabBrowser.Handle, nextPageLink);
             //nextPageLink.InvokeMember("click");//.click();
             return true;
@@ -958,9 +1020,12 @@ namespace AutoBroswer
             const UInt32 WM_LBUTTONDOWN = 0x0201;
             const UInt32 WM_LBUTTONUP = 0x0202;
             const int MK_LBUTTON = 0x0001;
-            // 模拟鼠标按下   
+            // 模拟鼠标按下  
+            FileLogger.Instance.LogInfo("before button down");
             AutoBroswerForm.SendMessage(handle, WM_LBUTTONDOWN, MK_LBUTTON, position);
+            FileLogger.Instance.LogInfo("after button down");
             AutoBroswerForm.SendMessage(handle, WM_LBUTTONUP, MK_LBUTTON, position);
+            FileLogger.Instance.LogInfo("after button up");
         }
 
         public void SetTimerUpEnable(int tickInter)
@@ -1046,8 +1111,8 @@ namespace AutoBroswer
             timeDown.Enabled = false;
             pageMoniterTimer.Enabled = false;
             isStopJob = true;
-            //this.Close(); 
-            //this.Dispose();
+            this.Close();
+            this.Dispose();
         }
     }
 }

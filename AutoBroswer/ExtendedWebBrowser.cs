@@ -26,6 +26,46 @@ public class WebBrowserExtendedNavigatingEventArgs : System.ComponentModel.Cance
         _Frame = frame;
     }
 }
+public class WebBrowserNavigateErrorEventArgs : EventArgs
+{
+    private String urlValue;
+    private String frameValue;
+    private Int32 statusCodeValue;
+    private Boolean cancelValue;
+
+    public WebBrowserNavigateErrorEventArgs(
+        String url, String frame, Int32 statusCode, Boolean cancel)
+    {
+        urlValue = url;
+        frameValue = frame;
+        statusCodeValue = statusCode;
+        cancelValue = cancel;
+    }
+
+    public String Url
+    {
+        get { return urlValue; }
+        set { urlValue = value; }
+    }
+
+    public String Frame
+    {
+        get { return frameValue; }
+        set { frameValue = value; }
+    }
+
+    public Int32 StatusCode
+    {
+        get { return statusCodeValue; }
+        set { statusCodeValue = value; }
+    }
+
+    public Boolean Cancel
+    {
+        get { return cancelValue; }
+        set { cancelValue = value; }
+    }
+}
 //First define a new EventArgs class to contain the newly exposed data
 public class NewWindow2EventArgs : CancelEventArgs
 {
@@ -101,6 +141,7 @@ public class ExtendedWebBrowser : WebBrowser
 {
     public AxHost.ConnectionPointCookie cookie;
     WebBrowserExtendedEvents events;
+    //WebBrowser2EventHelper helper;
 
     bool renavigating = false;
     public string UserAgent { get; set; }
@@ -108,40 +149,40 @@ public class ExtendedWebBrowser : WebBrowser
     {
         //DocumentCompleted += SetupBrowser;
 
-        ////this will cause SetupBrowser to run (we need a document object)
+        //this will cause SetupBrowser to run (we need a document object)
         //Navigate("about:blank");
     }
-    //void SetupBrowser(object sender, WebBrowserDocumentCompletedEventArgs e)
-    //{
-    //    DocumentCompleted -= SetupBrowser;
-    //    SHDocVw.WebBrowser xBrowser = (SHDocVw.WebBrowser)ActiveXInstance;
-    //    xBrowser.BeforeNavigate2 += BeforeNavigate;
-    //    DocumentCompleted += PageLoaded;
-    //}
+    void SetupBrowser(object sender, WebBrowserDocumentCompletedEventArgs e)
+    {
+        DocumentCompleted -= SetupBrowser;
+        SHDocVw.WebBrowser xBrowser = (SHDocVw.WebBrowser)ActiveXInstance;
+        xBrowser.BeforeNavigate2 += BeforeNavigate;
+        DocumentCompleted += PageLoaded;
+    }
 
-    //void PageLoaded(object sender, WebBrowserDocumentCompletedEventArgs e)
-    //{
+    void PageLoaded(object sender, WebBrowserDocumentCompletedEventArgs e)
+    {
 
-    //}
+    }
 
-    //void BeforeNavigate(object pDisp, ref object url, ref object flags, ref object targetFrameName,
-    //    ref object postData, ref object headers, ref bool cancel)
-    //{
-    //    if (!string.IsNullOrEmpty(UserAgent))
-    //    {
-    //        if (!renavigating)
-    //        {
-    //            headers += string.Format("User-Agent: {0}\r\n", UserAgent);
-    //            renavigating = true;
-    //            cancel = true;
-    //            Navigate((string)url, (string)targetFrameName, (byte[])postData, (string)headers);
-    //        }
-    //        else
-    //        {
-    //            renavigating = false;
-    //        }
-    //    }
-    //}
+    void BeforeNavigate(object pDisp, ref object url, ref object flags, ref object targetFrameName,
+        ref object postData, ref object headers, ref bool cancel)
+    {
+        if (!string.IsNullOrEmpty(UserAgent))
+        {
+            if (!renavigating)
+            {
+                headers += string.Format("User-Agent: {0}\r\n", UserAgent);
+                renavigating = true;
+                cancel = true;
+                Navigate((string)url, (string)targetFrameName, (byte[])postData, (string)headers);
+            }
+            else
+            {
+                renavigating = false;
+            }
+        }
+    }
 
     //This method will be called to give you a chance to create your own event sink
     protected override void CreateSink()
@@ -175,6 +216,17 @@ public class ExtendedWebBrowser : WebBrowser
             cookie = null;
         }
         base.DetachSink();
+    }
+    public event WebBrowserNavigateErrorEventHandler NavigateError;
+
+    // Raises the NavigateError event.
+    protected virtual void OnNavigateError(
+        WebBrowserNavigateErrorEventArgs e)
+    {
+        if (this.NavigateError != null)
+        {
+            this.NavigateError(this, e);
+        }
     }
 
     //This new event will fire for the NewWindow2
@@ -248,7 +300,8 @@ public class ExtendedWebBrowser : WebBrowser
         }
     }
 
-
+    public delegate void WebBrowserNavigateErrorEventHandler(object sender,
+        WebBrowserNavigateErrorEventArgs e);
     //This class will capture events from the WebBrowser
     public class WebBrowserExtendedEvents : System.Runtime.InteropServices.StandardOleMarshalObject, DWebBrowserEvents2
     {
@@ -282,6 +335,15 @@ public class ExtendedWebBrowser : WebBrowser
         {
             _Browser.OnBeforeNewWindow((string)URL, out cancel);
         }
+        public void NavigateError(object pDisp, ref object url,
+                ref object frame, ref object statusCode, ref bool cancel)
+        {
+            // Raise the NavigateError event.
+            _Browser.OnNavigateError(
+                new WebBrowserNavigateErrorEventArgs(
+                (String)url, (String)frame, (Int32)statusCode, cancel));
+        }
+
 
     }
     [ComImport, Guid("34A715A0-6587-11D0-924A-0020AFC7AC4D"), InterfaceType(ComInterfaceType.InterfaceIsIDispatch), TypeLibType(TypeLibTypeFlags.FHidden)]
@@ -312,6 +374,11 @@ public class ExtendedWebBrowser : WebBrowser
             [System.Runtime.InteropServices.In] ref object flags,
             [System.Runtime.InteropServices.In] ref object URLContext,
             [System.Runtime.InteropServices.In] ref object URL);
+        [DispId(271)]
+        void NavigateError(
+            [In, MarshalAs(UnmanagedType.IDispatch)] object pDisp,
+            [In] ref object URL, [In] ref object frame,
+            [In] ref object statusCode, [In, Out] ref bool cancel);
     }
 
     [ComImport, Guid("D30C1661-CDAF-11d0-8A3E-00C04FC9E26E"), TypeLibType(TypeLibTypeFlags.FOleAutomation | TypeLibTypeFlags.FDual | TypeLibTypeFlags.FHidden)]

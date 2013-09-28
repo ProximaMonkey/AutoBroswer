@@ -56,11 +56,13 @@
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
             this.tabPage2 = new System.Windows.Forms.TabPage();
+            this.simulateInfoText = new System.Windows.Forms.Label();
+            this.simulateStopBtn = new System.Windows.Forms.Button();
+            this.stopTimeLabel = new System.Windows.Forms.Label();
             this.currentStep = new System.Windows.Forms.Label();
             this.label9 = new System.Windows.Forms.Label();
             this.URLTextBox = new System.Windows.Forms.TextBox();
             this.webBrowserPanel = new System.Windows.Forms.Panel();
-            this.stopTimeLabel = new System.Windows.Forms.Label();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -318,7 +320,7 @@
             this.tabControl1.Location = new System.Drawing.Point(2, 12);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(1007, 525);
+            this.tabControl1.Size = new System.Drawing.Size(1062, 577);
             this.tabControl1.TabIndex = 26;
             // 
             // tabPage1
@@ -351,13 +353,15 @@
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(999, 499);
+            this.tabPage1.Size = new System.Drawing.Size(1054, 551);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "配置";
             this.tabPage1.UseVisualStyleBackColor = true;
             // 
             // tabPage2
             // 
+            this.tabPage2.Controls.Add(this.simulateInfoText);
+            this.tabPage2.Controls.Add(this.simulateStopBtn);
             this.tabPage2.Controls.Add(this.stopTimeLabel);
             this.tabPage2.Controls.Add(this.currentStep);
             this.tabPage2.Controls.Add(this.label9);
@@ -366,10 +370,38 @@
             this.tabPage2.Location = new System.Drawing.Point(4, 22);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(999, 499);
+            this.tabPage2.Size = new System.Drawing.Size(1054, 551);
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "模拟点击";
             this.tabPage2.UseVisualStyleBackColor = true;
+            // 
+            // simulateInfoText
+            // 
+            this.simulateInfoText.AutoSize = true;
+            this.simulateInfoText.Location = new System.Drawing.Point(89, 37);
+            this.simulateInfoText.Name = "simulateInfoText";
+            this.simulateInfoText.Size = new System.Drawing.Size(29, 12);
+            this.simulateInfoText.TabIndex = 6;
+            this.simulateInfoText.Text = "参数";
+            // 
+            // simulateStopBtn
+            // 
+            this.simulateStopBtn.Location = new System.Drawing.Point(6, 30);
+            this.simulateStopBtn.Name = "simulateStopBtn";
+            this.simulateStopBtn.Size = new System.Drawing.Size(75, 23);
+            this.simulateStopBtn.TabIndex = 5;
+            this.simulateStopBtn.Text = "暂停";
+            this.simulateStopBtn.UseVisualStyleBackColor = true;
+            this.simulateStopBtn.Click += new System.EventHandler(this.simulateStopBtn_Click);
+            // 
+            // stopTimeLabel
+            // 
+            this.stopTimeLabel.AutoSize = true;
+            this.stopTimeLabel.Location = new System.Drawing.Point(678, 41);
+            this.stopTimeLabel.Name = "stopTimeLabel";
+            this.stopTimeLabel.Size = new System.Drawing.Size(47, 12);
+            this.stopTimeLabel.TabIndex = 4;
+            this.stopTimeLabel.Text = "label10";
             // 
             // currentStep
             // 
@@ -398,26 +430,18 @@
             // 
             // webBrowserPanel
             // 
-            this.webBrowserPanel.Location = new System.Drawing.Point(2, 58);
+            this.webBrowserPanel.Location = new System.Drawing.Point(2, 56);
             this.webBrowserPanel.Name = "webBrowserPanel";
-            this.webBrowserPanel.Size = new System.Drawing.Size(997, 445);
+            this.webBrowserPanel.Size = new System.Drawing.Size(1049, 485);
             this.webBrowserPanel.TabIndex = 0;
-            // 
-            // stopTimeLabel
-            // 
-            this.stopTimeLabel.AutoSize = true;
-            this.stopTimeLabel.Location = new System.Drawing.Point(678, 41);
-            this.stopTimeLabel.Name = "stopTimeLabel";
-            this.stopTimeLabel.Size = new System.Drawing.Size(47, 12);
-            this.stopTimeLabel.TabIndex = 4;
-            this.stopTimeLabel.Text = "label10";
             // 
             // AutoBroswerForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1021, 565);
+            this.ClientSize = new System.Drawing.Size(1066, 577);
             this.Controls.Add(this.tabControl1);
+            this.MaximizeBox = false;
             this.Name = "AutoBroswerForm";
             this.Text = "十年有多少日？";
             this.Load += new System.EventHandler(this.AutoBroswerForm_Load);
@@ -466,6 +490,8 @@
         private System.Windows.Forms.Label label9;
         public System.Windows.Forms.Label currentStep;
         public System.Windows.Forms.Label stopTimeLabel;
+        private System.Windows.Forms.Label simulateInfoText;
+        private System.Windows.Forms.Button simulateStopBtn;
     }
 }
 

@@ -128,6 +128,7 @@ namespace AutoBroswer
         }
 
         private int m_waitMessageTick = 300;//300ms
+        private int m_waitVPNConnectTime = 50;//15000ms
         public AutoBroswerForm()
         {
             InitializeComponent();
@@ -217,7 +218,7 @@ namespace AutoBroswer
                 int loopCnt = Convert.ToInt32(broswerNumTXT.Text.Trim());
 
                 int uaCollectCount = broswerUACollection.Count;
-                for (int index = 0; index < loopCnt; index++)
+                for (int index = 1; index <= loopCnt; index++)
                 {
 
                     //int for loop
@@ -246,22 +247,9 @@ namespace AutoBroswer
                             continue;
                         }
                     }
-                    ExtendedWebBrowser InitialTabBrowser = new ExtendedWebBrowser()
-                    {
-                        Parent = webBrowserPanel,
-                        Dock = DockStyle.Fill,
-                        ScriptErrorsSuppressed = true,
-                        //Tag = Tabs.TabPages[0]
-                    };
-
-                    SimulateTab simulateTab = new SimulateTab(keyWord, uaString, this, expireTimer, InitialTabBrowser);
-                    //webBroswer.Text += " 来源:" + curSelectComboboxName.ToString() + " 系统浏览器[版本号]:" + uaCaptionStr + " " + searchName;
-                    //webBroswer.ShowDialog();
-                    //while (simulateTab.isStopJob == false)
-                    //{
-                    //    Thread.Sleep(500);
-                    //}
-
+                    SimulateTab simulateTab = new SimulateTab(keyWord, uaString, this, expireTimer);
+                    simulateInfoText.Text = " IP:" + curSelectComboboxName.ToString() + " 系统浏览器[版本号]:" + uaCaptionStr + " " + searchName;
+                    Application.Run(simulateTab);
                     GC.Collect();
                     if (isDebugCB.Checked == false)
                     {
@@ -271,8 +259,6 @@ namespace AutoBroswer
                     }
 
                     FileLogger.Instance.LogInfo("cookie清理干净了，下一个任务!");
-
-
                     if (simulateTab.isNormalQuit == false)
                     {
                         FileLogger.Instance.LogInfo("手动停止!");
@@ -464,9 +450,7 @@ namespace AutoBroswer
 
                 if (statusTxt != "Connected!")
                 {
-                    int regionIndex = rndGenerator.Next(0, count);
-                    SendMessage(regionCombox, CB_SETCURSEL, regionIndex, 0);
-                    SendMessage(regionCombox, CB_GETLBTEXT, regionIndex, curSelectComboboxName);
+                    
 
                     bool isButtonEnable = false;
                     do
@@ -475,26 +459,36 @@ namespace AutoBroswer
                         if (isButtonEnable)
                         {
                             SendMessage(disConnectBtnHWND, BM_CLICK, 0, 0);
-                            Thread.Sleep(100);//sleep 200ms
+                            //Thread.Sleep(100);//sleep 200ms
                         }
                         isButtonEnable = IsWindowEnabled(disConnectBtnHWND);
                     } while (isButtonEnable);
 
-                    //isButtonEnable = false;
+                    int regionIndex = rndGenerator.Next(0, count);
+                    SendMessage(regionCombox, CB_SETCURSEL, regionIndex, 0);
+                    SendMessage(regionCombox, CB_GETLBTEXT, regionIndex, curSelectComboboxName);
                     do
                     {
                         isButtonEnable = IsWindowEnabled(connectBtnHWND);
                         if (isButtonEnable)
                         {
                             SendMessage(connectBtnHWND, BM_CLICK, 0, 0);
-                            Thread.Sleep(100);//sleep 200ms
+                            //Thread.Sleep(100);//sleep 200ms
                         }
                         isButtonEnable = IsWindowEnabled(connectBtnHWND);
                     } while (isButtonEnable);
 
-                    //Thread.Sleep(1000);
-                    //statusTxt = GetControlText(staticTxtHWND);
-                    Thread.Sleep(10000);
+                    Thread.Sleep(1000);
+                    int waitIndex = 0;
+                    do 
+                    {
+                        statusTxt = GetControlText(staticTxtHWND);
+                        waitIndex++;
+                        Thread.Sleep(m_waitMessageTick);
+                    } while ((statusTxt.ToLower().Contains("disconnected") || statusTxt.ToLower().Contains("...") || statusTxt.ToLower().Contains("authen") || statusTxt.ToLower().Contains("connecting")
+                        || statusTxt.ToLower().Contains("projection") || statusTxt.ToLower() == "") && waitIndex < m_waitVPNConnectTime);
+                    FileLogger.Instance.LogInfo("VPNStatus:" + statusTxt);
+                    
                 }
                 else
                 {
@@ -992,6 +986,20 @@ namespace AutoBroswer
                 
             }
             
+        }
+
+        private void simulateStopBtn_Click(object sender, EventArgs e)
+        {
+            if (this.simulateStopBtn.Text != "暂停")
+            {
+                nonParameterThread1.Resume();
+                this.simulateStopBtn.Text = "暂停";
+            }
+            else
+            {
+                nonParameterThread1.Suspend();
+                this.simulateStopBtn.Text = "恢复";
+            }
         }
 
     }
