@@ -139,8 +139,35 @@ namespace AutoBroswer
                 UserAgent = uaString
                 //Tag = Tabs.TabPages[0]
             };
+
+
             InitialTabBrowser.NavigateError += new AutoBroswer.ExtendedWebBrowser.WebBrowserNavigateErrorEventHandler(InitialTabBrowser_NavigateError);
             InitialTabBrowser.DocumentCompleted += new WebBrowserDocumentCompletedEventHandler(InitialTabBrowser_DocumentCompleted);
+            InitialTabBrowser.ProgressChanged += new WebBrowserProgressChangedEventHandler(InitialTabBrowser_ProgressChangedForSomething);
+            //InitialTabBrowser.Navigating +=new WebBrowserNavigatingEventHandler(InitialTabBrowser_Navigating);
+            //InitialTabBrowser.Navigated += new WebBrowserNavigatedEventHandler(InitialTabBrowser_Navigated);
+            //bool live = true;
+            ////webBrowser1.Navigate(@"http://www.csdn.net");
+            //InitialTabBrowser.ProgressChanged += delegate { live = true; };
+            //System.Threading.Timer t = new System.Threading.Timer(
+            //    m => this.Invoke((Action)delegate
+            //    {
+            //        //还没加载完，并且连续30秒没有进度增加了。
+            //        if (!live && InitialTabBrowser.ReadyState != WebBrowserReadyState.Complete)
+            //        {
+            //            ShutDownWinForms();
+            //        }
+            //        live = false;//检查过就设置为false，如果下一次进入循环，还是false表明进度没增加，可以考虑结束打开了
+            //    }), null, 0, 30000);//30秒检测，我们不检查是否结束了。而是判断是否仍然在尝试打开，这样如果网速慢就不至于错判
+            System.Threading.Timer t = new System.Threading.Timer(
+                    m => this.Invoke((Action)delegate
+                    {
+                        if (InitialTabBrowser.ReadyState != WebBrowserReadyState.Complete)
+                        {
+                            ShutDownWinForms();//终止掉
+                        }
+                    }), null, 30000, System.Threading.Timeout.Infinite);//30秒检测
+
             timeDown.Interval = 100;
             timeDown.Tick += new EventHandler(timeDown_Tick);
             timeUp.Interval = 100;
@@ -230,7 +257,35 @@ namespace AutoBroswer
             FileLogger.Instance.LogInfo("load fail:" + e.Url);
             this.ShutDownWinForms();
         }
+        public void InitialTabBrowser_ProgressChangedForSomething(object sender, WebBrowserProgressChangedEventArgs e)
+        {
+            
+            if (((WebBrowser)sender).ReadyState == WebBrowserReadyState.Complete)
+            {
+                //System.Text.StringBuilder messageBoxCS = new System.Text.StringBuilder();
+                //messageBoxCS.AppendFormat("{0} = {1}", "CurrentProgress", e.CurrentProgress);
+                //messageBoxCS.AppendLine();
+                //messageBoxCS.AppendFormat("{0} = {1}", "MaximumProgress", e.MaximumProgress);
+                //messageBoxCS.AppendLine();
+                //MessageBox.Show(messageBoxCS.ToString(), "ProgressChanged Event");
+                
+                doMainJob();
+            }
+        }
+        void InitialTabBrowser_Navigating(object sender, WebBrowserNavigatingEventArgs e)
+        {
+            FileLogger.Instance.LogInfo("Navigating URL:" + e.Url);
+        }
+        void InitialTabBrowser_Navigated(object sender, WebBrowserNavigatedEventArgs e)
+        {
+            FileLogger.Instance.LogInfo("Navigated URL:" + e.Url);
+        }
         public void InitialTabBrowser_DocumentCompleted(object sender, WebBrowserDocumentCompletedEventArgs e)
+        {
+            //doMainJob();
+        }
+
+        public void doMainJob()
         {
             bool bRet = false;
             //((WebBrowser)sender).Document.Window.Error += new HtmlElementErrorEventHandler(Window_Error);
@@ -256,7 +311,7 @@ namespace AutoBroswer
             //}
             FileLogger.Instance.LogInfo("当前步骤:" + m_currentStep);
             //FileLogger.Instance.LogInfo("Cookie:" + InitialTabBrowser.Document.Cookie);
-            autoBroswerFrom.URLTextBox.Text = e.Url.ToString();
+            //autoBroswerFrom.URLTextBox.Text = e.Url.ToString();
 
             if (m_currentStep == ECurrentStep.ECurrentStep_Load)
             {
@@ -293,7 +348,7 @@ namespace AutoBroswer
                 }
                 else
                 {
-                    
+
                     autoBroswerFrom.currentStep.Text = "货比三家";
 
                     m_iOtherItemStopTime = autoBroswerFrom.rndGenerator.Next(20, 30);
@@ -302,14 +357,15 @@ namespace AutoBroswer
                     pageMoniterTimer.Start();
                 }
 
-            }else if (m_currentStep == ECurrentStep.ECurrentStep_Visit_Me_Main)
+            }
+            else if (m_currentStep == ECurrentStep.ECurrentStep_Visit_Me_Main)
             {
                 SetTimerDownEnable(500);
 
                 autoBroswerFrom.currentStep.Text = "访问主宝贝";
 
                 int stopTime = autoBroswerFrom.rndGenerator.Next(m_iMainItemStopMin, m_iMainItemStopMax);
- 
+
                 string labStr = "主宝贝停留时间:" + stopTime + "S";
                 FileLogger.Instance.LogInfo(labStr);
                 autoBroswerFrom.stopTimeLabel.Text = labStr;
