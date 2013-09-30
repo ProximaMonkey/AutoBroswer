@@ -255,10 +255,18 @@ namespace AutoBroswer
                     {
                         bRet = disconnectVPN();
                         bRet = runCClean();
+                        if (bRet)
+                        {
+                            FileLogger.Instance.LogInfo("cookie清理干净了");
+                        }
+                        else
+                        {
+                            FileLogger.Instance.LogInfo("cookie清理干净了");
+                        }
                         bRet = runNiuBDASHI();
                     }
 
-                    FileLogger.Instance.LogInfo("cookie清理干净了，下一个任务!");
+                    FileLogger.Instance.LogInfo("下一个任务!");
                     if (simulateTab.isNormalQuit == false)
                     {
                         FileLogger.Instance.LogInfo("手动停止!");
@@ -490,7 +498,6 @@ namespace AutoBroswer
                     } while ((statusTxt.ToLower().Contains("disconnected") || statusTxt.ToLower().Contains("...") || statusTxt.ToLower().Contains("authen") || statusTxt.ToLower().Contains("connecting")
                         || statusTxt.ToLower().Contains("projection") || statusTxt.ToLower() == "") && waitIndex < m_waitVPNConnectTime);
                     FileLogger.Instance.LogInfo("VPNStatus:" + statusTxt);
-                    
                 }
                 else
                 {
