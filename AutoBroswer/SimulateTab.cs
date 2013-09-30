@@ -57,7 +57,6 @@ namespace AutoBroswer
         public int m_iOtherItemStopMax;
 
         public int m_iOtherItemStopTime;//其它家宝贝时间，随机在20-30s
-        public bool m_isVisitRand;
         const int millSeconds = 1000;
 
         ExtendedWebBrowser InitialTabBrowser;
@@ -76,7 +75,6 @@ namespace AutoBroswer
         private string m_otherItemPattern = @"http://item.taobao.com/item.htm?(.*)id=(\d{11})$";
 
         public bool isNormalQuit = false;
-        public bool isStopJob = false;
         private int m_randCompCount = 0;//随机货比三家个数
         private int m_randDeepItemCount = 0;//访问深度
         Regex otherItemRegex;
@@ -88,7 +86,6 @@ namespace AutoBroswer
             m_iMainItemStopMax = autoBroswerFrom.getMainItemMaxTime();
             m_iOhterItemStopMin = autoBroswerFrom.getOtherItemMinTime();
             m_iOtherItemStopMax = autoBroswerFrom.getOtherItemMaxTime();
-            m_isVisitRand = autoBroswerFrom.isVisitDeepRand();
 
             m_randItemElement = new List<HtmlElement>();
             m_mainItemClickElement = new List<HtmlElement>();
@@ -107,6 +104,9 @@ namespace AutoBroswer
             {
                 m_randDeepItemCount = autoBroswerFrom.rndGenerator.Next(1, 5);
             }
+
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.SimulateTab_FormClosing);
+
             //pageMoniterTimer.AutoReset = false;//do only one times
             //pageMoniterTimer.Enabled = true;
             return true;
@@ -146,27 +146,26 @@ namespace AutoBroswer
             InitialTabBrowser.ProgressChanged += new WebBrowserProgressChangedEventHandler(InitialTabBrowser_ProgressChangedForSomething);
             //InitialTabBrowser.Navigating +=new WebBrowserNavigatingEventHandler(InitialTabBrowser_Navigating);
             //InitialTabBrowser.Navigated += new WebBrowserNavigatedEventHandler(InitialTabBrowser_Navigated);
-            //bool live = true;
-            ////webBrowser1.Navigate(@"http://www.csdn.net");
-            //InitialTabBrowser.ProgressChanged += delegate { live = true; };
-            //System.Threading.Timer t = new System.Threading.Timer(
-            //    m => this.Invoke((Action)delegate
-            //    {
-            //        //还没加载完，并且连续30秒没有进度增加了。
-            //        if (!live && InitialTabBrowser.ReadyState != WebBrowserReadyState.Complete)
-            //        {
-            //            ShutDownWinForms();
-            //        }
-            //        live = false;//检查过就设置为false，如果下一次进入循环，还是false表明进度没增加，可以考虑结束打开了
-            //    }), null, 0, 30000);//30秒检测，我们不检查是否结束了。而是判断是否仍然在尝试打开，这样如果网速慢就不至于错判
+            bool live = true;
+            InitialTabBrowser.ProgressChanged += delegate { live = true; };
             System.Threading.Timer t = new System.Threading.Timer(
-                    m => this.Invoke((Action)delegate
+                m => this.Invoke((Action)delegate
+                {
+                    //还没加载完，并且连续30秒没有进度增加了。
+                    if (!live && InitialTabBrowser.ReadyState != WebBrowserReadyState.Complete)
                     {
-                        if (InitialTabBrowser.ReadyState != WebBrowserReadyState.Complete)
-                        {
-                            ShutDownWinForms();//终止掉
-                        }
-                    }), null, 30000, System.Threading.Timeout.Infinite);//30秒检测
+                        ShutDownWinForms();
+                    }
+                    live = false;//检查过就设置为false，如果下一次进入循环，还是false表明进度没增加，可以考虑结束打开了
+                }), null, 0, 20000);//30秒检测，我们不检查是否结束了。而是判断是否仍然在尝试打开，这样如果网速慢就不至于错判
+            //System.Threading.Timer t = new System.Threading.Timer(
+            //        m => this.Invoke((Action)delegate
+            //        {
+            //            if (InitialTabBrowser.ReadyState != WebBrowserReadyState.Complete)
+            //            {
+            //                ShutDownWinForms();//终止掉
+            //            }
+            //        }), null, 30000, System.Threading.Timeout.Infinite);//30秒检测
 
             timeDown.Interval = 100;
             timeDown.Tick += new EventHandler(timeDown_Tick);
@@ -269,7 +268,7 @@ namespace AutoBroswer
                 //messageBoxCS.AppendLine();
                 //MessageBox.Show(messageBoxCS.ToString(), "ProgressChanged Event");
                 
-                doMainJob();
+                //doMainJob();
             }
         }
         void InitialTabBrowser_Navigating(object sender, WebBrowserNavigatingEventArgs e)
@@ -282,36 +281,20 @@ namespace AutoBroswer
         }
         public void InitialTabBrowser_DocumentCompleted(object sender, WebBrowserDocumentCompletedEventArgs e)
         {
-            //doMainJob();
+            doMainJob();
         }
 
+        private string lastURL = "";
         public void doMainJob()
         {
             bool bRet = false;
-            //((WebBrowser)sender).Document.Window.Error += new HtmlElementErrorEventHandler(Window_Error);
-            //if (m_currentStep != ECurrentStep.ECurrentStep_Load && m_currentStep != ECurrentStep.ECurrentStep_Search)
-            //{
-            //    FileLogger.Instance.LogInfo("到这没有1， 状态:" + m_currentStep);
-            //    if (InitialTabBrowser.ReadyState != WebBrowserReadyState.Complete)
-            //    {
-            //        FileLogger.Instance.LogInfo("NotReady");
-            //        return;
-            //    }
-            //    if ((e.Url.AbsolutePath == "blank") || (e.Url != InitialTabBrowser.Url))
-            //    {
-            //        FileLogger.Instance.LogInfo("e.url:" + e.Url.AbsolutePath);
-            //        FileLogger.Instance.LogInfo("e.url:" + InitialTabBrowser.Url.AbsolutePath);
-            //        return;
-            //    }
-            //    if (InitialTabBrowser.Document.Body.All.Count < 10)
-            //    {
-            //        FileLogger.Instance.LogInfo("AllCount <10");
-            //        return;
-            //    }
-            //}
+            if (this.InitialTabBrowser.ReadyState != WebBrowserReadyState.Complete)
+                return;
+            string innerHtml = this.InitialTabBrowser.Document.Body.InnerHtml;
+            string str1 = this.InitialTabBrowser.Document.Url.ToString();
             FileLogger.Instance.LogInfo("当前步骤:" + m_currentStep);
             //FileLogger.Instance.LogInfo("Cookie:" + InitialTabBrowser.Document.Cookie);
-            //autoBroswerFrom.URLTextBox.Text = e.Url.ToString();
+            autoBroswerFrom.URLTextBox.Text = str1;
 
             if (m_currentStep == ECurrentStep.ECurrentStep_Load)
             {
@@ -321,33 +304,47 @@ namespace AutoBroswer
                     MessageBox.Show("未知错误，可能淘宝又变标签了，请联系作者", "出错啦！");
                     return;
                 }
-                bRet = searchBroswer(keyWord);
-                if (bRet)
+                //bRet = searchBroswer(keyWord);
+                if (str1.IndexOf("http://www.taobao.com/") > -1 && innerHtml.IndexOf("淘宝网首页") > -1)
                 {
-                    FileLogger.Instance.LogInfo("搜索正在等待跳转");
+                    this.InitialTabBrowser.Document.GetElementById("q").InnerText = keyWord;
+                    this.InitialTabBrowser.Document.GetElementById("J_TSearchForm").InvokeMember("submit");
+                    m_currentStep = ECurrentStep.ECurrentStep_Search;
+                    lastURL = str1;
                 }
-                else
-                {
-                    FileLogger.Instance.LogInfo("s搜索失败，没有跳转");
-                }
+                //if (bRet)
+                //{
+                //    FileLogger.Instance.LogInfo("搜索正在等待跳转");
+                //}
+                //else
+                //{
+                //    FileLogger.Instance.LogInfo("s搜索失败，没有跳转");
+                //}
             }
             else if (m_currentStep == ECurrentStep.ECurrentStep_Search)
             {
-                SetTimerDownEnable(50);
+                if (str1.IndexOf("http://s.taobao.com/search") > -1 && innerHtml.IndexOf("所有分类") > -1)
+                {
+                    SetTimerDownEnable(5);
 
-                autoBroswerFrom.currentStep.Text = "查找宝贝";
+                    autoBroswerFrom.currentStep.Text = "查找宝贝";
+                    lastURL = str1;
+                }
+                
             }
             else if (m_currentStep == ECurrentStep.ECurrentStep_Visit_Compare)
             {
-                SetTimerDownEnable(50);
-                if (m_isNativeBack)
+                if (str1.IndexOf("http://s.taobao.com/search") > -1 && innerHtml.IndexOf("所有分类") > -1)
                 {
+                    SetTimerDownEnable(5);
+
                     autoBroswerFrom.currentStep.Text = "货比三家回搜索页";
                     pageMoniterTimer.Enabled = false;
                     pageMoniterTimer.Stop();
                 }
-                else
+                else if ((str1.IndexOf("http://item.taobao.com") > -1 || str1.IndexOf("http://detail.tmall.com") > -1) && innerHtml != "")
                 {
+                    SetTimerDownEnable(50);
 
                     autoBroswerFrom.currentStep.Text = "货比三家";
 
@@ -356,24 +353,46 @@ namespace AutoBroswer
                     pageMoniterTimer.Enabled = true;
                     pageMoniterTimer.Start();
                 }
+                //SetTimerDownEnable(50);
+                //if (m_isNativeBack)
+                //{
+                //    autoBroswerFrom.currentStep.Text = "货比三家回搜索页";
+                //    pageMoniterTimer.Enabled = false;
+                //    pageMoniterTimer.Stop();
+                //}
+                //else
+                //{
+
+                //    autoBroswerFrom.currentStep.Text = "货比三家";
+
+                //    m_iOtherItemStopTime = autoBroswerFrom.rndGenerator.Next(20, 30);
+                //    pageMoniterTimer.Interval = m_iOtherItemStopTime * millSeconds;
+                //    pageMoniterTimer.Enabled = true;
+                //    pageMoniterTimer.Start();
+                //}
 
             }
             else if (m_currentStep == ECurrentStep.ECurrentStep_Visit_Me_Main)
             {
                 SetTimerDownEnable(500);
 
-                autoBroswerFrom.currentStep.Text = "访问主宝贝";
+                if (lastURL != str1)
+                {
+                    autoBroswerFrom.currentStep.Text = "访问主宝贝";
 
-                int stopTime = autoBroswerFrom.rndGenerator.Next(m_iMainItemStopMin, m_iMainItemStopMax);
+                    int stopTime = autoBroswerFrom.rndGenerator.Next(m_iMainItemStopMin, m_iMainItemStopMax);
 
-                string labStr = "主宝贝停留时间:" + stopTime + "S";
-                FileLogger.Instance.LogInfo(labStr);
-                autoBroswerFrom.stopTimeLabel.Text = labStr;
+                    string labStr = "主宝贝停留时间:" + stopTime + "S";
+                    FileLogger.Instance.LogInfo(labStr);
+                    autoBroswerFrom.stopTimeLabel.Text = labStr;
 
-                pageMoniterTimer.Interval = stopTime * millSeconds;
-                pageMoniterTimer.Enabled = true;
-                pageMoniterTimer.Start();
-                getRandClickMainItem();
+                    pageMoniterTimer.Interval = stopTime * millSeconds;
+                    pageMoniterTimer.Enabled = true;
+                    pageMoniterTimer.Start();
+                    getRandClickMainItem();
+                    lastURL = str1;
+                }
+                
             }
             else if (m_currentStep == ECurrentStep.ECurrentStep_Visit_Me_MainPage)
             {
@@ -402,18 +421,23 @@ namespace AutoBroswer
             else if (m_currentStep == ECurrentStep.ECurrentStep_Visit_Me_Other)
             {
                 SetTimerDownEnable(500);
+                if (lastURL != str1)
+                {
+                    autoBroswerFrom.currentStep.Text = "访问其它随机宝贝";
 
-                autoBroswerFrom.currentStep.Text = "访问其它随机宝贝";
+                    int stopTime = autoBroswerFrom.rndGenerator.Next(m_iOhterItemStopMin, m_iOtherItemStopMax);
+                    string labStr = "其它随机宝贝停留时间:" + stopTime + "S";
+                    FileLogger.Instance.LogInfo(labStr);
+                    autoBroswerFrom.stopTimeLabel.Text = labStr;
 
-                int stopTime = autoBroswerFrom.rndGenerator.Next(m_iOhterItemStopMin, m_iOtherItemStopMax);
-                string labStr = "其它随机宝贝停留时间:" + stopTime + "S";
-                FileLogger.Instance.LogInfo(labStr);
-                autoBroswerFrom.stopTimeLabel.Text = labStr;
+                    pageMoniterTimer.Interval = stopTime * millSeconds;
+                    pageMoniterTimer.Enabled = true;
+                    pageMoniterTimer.Start();
+                    getRandClickMainItem();
+                    lastURL = str1;
+                }
 
-                pageMoniterTimer.Interval = stopTime * millSeconds;
-                pageMoniterTimer.Enabled = true;
-                pageMoniterTimer.Start();
-                getRandClickMainItem();
+                
             }
         }
         void expireTimer_Tick(object sender, EventArgs e)
@@ -676,9 +700,16 @@ namespace AutoBroswer
             if (isFound)
             {
                 FileLogger.Instance.LogInfo("在当前页:" + pageInfo + " 找到");
-                randSelectOtherItem();
-                randVisitOtherItemInSearch();
-
+                if (m_randCompCount != 0)
+                {
+                    randSelectOtherItem();
+                    randVisitOtherItemInSearch();
+                    m_randCompCount--;
+                }
+                else
+                {
+                    visitMe();
+                }
             }
             else
             {
@@ -1159,14 +1190,25 @@ namespace AutoBroswer
             }
             
         }
-
+        private void SimulateTab_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            try
+            {
+                ShutDownWinForms();
+            }
+            catch (Exception error)
+            {
+                // Let the user know what went wrong.
+                Console.WriteLine("The file could not be read:");
+                Console.WriteLine(error.Message);
+            }
+        }
 
         public void ShutDownWinForms()
         {
             timeUp.Enabled = false;
             timeDown.Enabled = false;
             pageMoniterTimer.Enabled = false;
-            isStopJob = true;
             this.Close();
             this.Dispose();
         }

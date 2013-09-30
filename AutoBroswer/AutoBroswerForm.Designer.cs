@@ -173,8 +173,6 @@
             // visitDeepRndCheckBox
             // 
             this.visitDeepRndCheckBox.AutoSize = true;
-            this.visitDeepRndCheckBox.Checked = true;
-            this.visitDeepRndCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
             this.visitDeepRndCheckBox.Location = new System.Drawing.Point(408, 96);
             this.visitDeepRndCheckBox.Name = "visitDeepRndCheckBox";
             this.visitDeepRndCheckBox.Size = new System.Drawing.Size(72, 16);
@@ -268,9 +266,9 @@
             this.isDebugCB.AutoSize = true;
             this.isDebugCB.Location = new System.Drawing.Point(385, 47);
             this.isDebugCB.Name = "isDebugCB";
-            this.isDebugCB.Size = new System.Drawing.Size(72, 16);
+            this.isDebugCB.Size = new System.Drawing.Size(84, 16);
             this.isDebugCB.TabIndex = 21;
-            this.isDebugCB.Text = "是否调试";
+            this.isDebugCB.Text = "是否刷销量";
             this.isDebugCB.UseVisualStyleBackColor = true;
             // 
             // ipComboBox
@@ -350,10 +348,10 @@
             this.tabPage1.Controls.Add(this.otherItemMaxTimeTXT);
             this.tabPage1.Controls.Add(this.label6);
             this.tabPage1.Controls.Add(this.otherItemMinTimeTXT);
-            this.tabPage1.Location = new System.Drawing.Point(4, 22);
+            this.tabPage1.Location = new System.Drawing.Point(4, 21);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(1054, 551);
+            this.tabPage1.Size = new System.Drawing.Size(1054, 552);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "配置";
             this.tabPage1.UseVisualStyleBackColor = true;
@@ -367,10 +365,10 @@
             this.tabPage2.Controls.Add(this.label9);
             this.tabPage2.Controls.Add(this.URLTextBox);
             this.tabPage2.Controls.Add(this.webBrowserPanel);
-            this.tabPage2.Location = new System.Drawing.Point(4, 22);
+            this.tabPage2.Location = new System.Drawing.Point(4, 21);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(1054, 551);
+            this.tabPage2.Size = new System.Drawing.Size(1054, 552);
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "模拟点击";
             this.tabPage2.UseVisualStyleBackColor = true;

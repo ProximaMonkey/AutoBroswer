@@ -268,6 +268,8 @@ namespace AutoBroswer
             }
             catch (Exception error)
             {
+                nonParameterThread1.Abort();
+                MessageBox.Show(error.Message, "error!");
                 Console.WriteLine(error.Message.ToString());
                 Console.WriteLine(error.StackTrace);
             }
@@ -431,7 +433,7 @@ namespace AutoBroswer
                 return false;
             }
 
-            int count = SendMessage(regionCombox, CB_GETCOUNT, 0, 0);
+            
 
             //int reCode = Marshal.GetLastWin32Error();
             //MessageBox.Show("test", count + "--" + reCode);
@@ -441,8 +443,10 @@ namespace AutoBroswer
             {
                 return false;
             }
-
-            
+            int count = SendMessage(regionCombox, CB_GETCOUNT, 0, 0);
+            FileLogger.Instance.LogInfo("VPNCount:" + count);
+            Thread.Sleep(100);
+            count = SendMessage(regionCombox, CB_GETCOUNT, 0, 0);
             bool isConnect = false;
             while (!isConnect)
             {
@@ -450,8 +454,6 @@ namespace AutoBroswer
 
                 if (statusTxt != "Connected!")
                 {
-                    
-
                     bool isButtonEnable = false;
                     do
                     {
@@ -673,6 +675,7 @@ namespace AutoBroswer
             {
                 File.WriteAllText("KeyWord.txt", keywordRichTB.Text, Encoding.Default);
                 FileLogger.Instance.Close();
+                nonParameterThread1.Abort();
             }
             catch (Exception error)
             {
