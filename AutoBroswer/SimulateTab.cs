@@ -15,10 +15,16 @@ namespace AutoBroswer
     {
         System.Windows.Forms.Timer timeDown = new System.Windows.Forms.Timer();
         System.Windows.Forms.Timer timeUp = new System.Windows.Forms.Timer();
-        System.Windows.Forms.Timer pageMoniterTimer = new System.Windows.Forms.Timer();
-        System.Windows.Forms.Timer expireTimer = new System.Windows.Forms.Timer();
 
-        System.Threading.Timer m_openURLTimer;
+        DateTime jobExpireTime; //任务超时时间 15M
+        DateTime pageExpireTime;//摸个页面超时时间
+        DateTime openURLExpireTime;//加载URL超时
+
+        System.Windows.Forms.Timer moniterTimer = new System.Windows.Forms.Timer();
+        //System.Windows.Forms.Timer pageMoniterTimer = new System.Windows.Forms.Timer();
+        //System.Windows.Forms.Timer expireTimer = new System.Windows.Forms.Timer();
+
+        //System.Threading.Timer m_openURLTimer;
         public int randMoveInterval = 50;
 
         [DllImport("user32.dll")]
@@ -60,7 +66,9 @@ namespace AutoBroswer
 
         public int m_iOtherItemStopTime;//其它家宝贝时间，随机在20-30s
         const int millSeconds = 1000;
-
+        const int OPENURLTIMEOUT = 30 * 1000;
+        const int ImpossibleTime = 30 * 60 * 1000;//不可能的超时时间
+        private bool isOpenningURL = false;
         ExtendedWebBrowser InitialTabBrowser;
 
         private HtmlElement m_myItemElement;//在搜索页的ELEMENT,
@@ -76,7 +84,6 @@ namespace AutoBroswer
         private string m_otherItemPattern = @"http://item.taobao.com/item.htm?(.*)id=(\d{11})$";
 
         public bool isNormalQuit = false;
-        private bool m_live = true;
         private int m_randCompCount = 0;//随机货比三家个数
         private int m_randDeepItemCount = 0;//访问深度
         Regex otherItemRegex;
@@ -92,7 +99,7 @@ namespace AutoBroswer
             m_mainItemClickElement = new List<HtmlElement>();
             m_mainItemSpanElement = new List<HtmlElement>();
 
-            pageMoniterTimer.Tick += new EventHandler(PageMoniterTimeEvent);
+            //pageMoniterTimer.Tick += new EventHandler(PageMoniterTimeEvent);
 
             if (autoBroswerFrom.isCompareRandCB())
             {
@@ -128,45 +135,34 @@ namespace AutoBroswer
                 Dock = DockStyle.Fill,
                 ScriptErrorsSuppressed = true,
                 UserAgent = uaString
-                //Tag = Tabs.TabPages[0]
             };
 
 
             InitialTabBrowser.NavigateError += new AutoBroswer.ExtendedWebBrowser.WebBrowserNavigateErrorEventHandler(InitialTabBrowser_NavigateError);
             InitialTabBrowser.DocumentCompleted += new WebBrowserDocumentCompletedEventHandler(InitialTabBrowser_DocumentCompleted);
             InitialTabBrowser.ProgressChanged += new WebBrowserProgressChangedEventHandler(InitialTabBrowser_ProgressChangedForSomething);
-            //InitialTabBrowser.Navigating +=new WebBrowserNavigatingEventHandler(InitialTabBrowser_Navigating);
-            //InitialTabBrowser.Navigated += new WebBrowserNavigatedEventHandler(InitialTabBrowser_Navigated);
-
-            InitialTabBrowser.ProgressChanged += delegate { m_live = true; };
+           
                         
             timeDown.Interval = 100;
             timeDown.Tick += new EventHandler(timeDown_Tick);
             timeUp.Interval = 100;
             timeUp.Tick += new EventHandler(timeUp_Tick);
 
-            expireTimer.Interval = expireTime;// 15 * 60 * millSeconds;//15minus
-            expireTimer.Enabled = true;
-            expireTimer.Tick += new EventHandler(expireTimer_Tick);
-            expireTimer.Start();
+            jobExpireTime = DateTime.Now.AddMilliseconds(expireTime);
+            
 
             keyWord = inputKeyword;
             autoBroswerFrom = _AutoBroswer;
             initValue();
 
             InitialTabBrowser.Navigate("http://www.taobao.com/");
+            isOpenningURL = true;
+            openURLExpireTime = DateTime.Now.AddMilliseconds(OPENURLTIMEOUT);
 
-            m_openURLTimer = new System.Threading.Timer(
-                m => this.Invoke((Action)delegate
-                {
-                    if (!m_live && InitialTabBrowser.ReadyState != WebBrowserReadyState.Complete)
-                    {
-                        FileLogger.Instance.LogInfo("还没加载完，并且连续20秒没有进度增加了，当前状态:" + InitialTabBrowser.ReadyState);
-                        isNormalQuit = true;
-                        ShutDownWinForms();
-                    }
-                    m_live = false;//检查过就设置为false，如果下一次进入循环，还是false表明进度没增加，可以考虑结束打开了
-                }), null, 0, 20000);//20秒检测，我们不检查是否结束了。而是判断是否仍然在尝试打开，这样如果网速慢就不至于错判
+            moniterTimer.Tick += new EventHandler(TimerTick);
+            moniterTimer.Interval = 1000;
+            moniterTimer.Enabled = true;
+            moniterTimer.Start();
 
         }
 
@@ -197,6 +193,7 @@ namespace AutoBroswer
                         Point p = new Point(rect.Left + rect.Width / 2, rect.Top + rect.Height / 2);
                         RandMove(InitialTabBrowser.Handle, 1000, rect);
                         ClickOnPointInClient(InitialTabBrowser.Handle, p);
+                        isOpenningURL = true;
                         m_currentStep = ECurrentStep.ECurrentStep_Search;
                         return true;
                     }
@@ -276,7 +273,7 @@ namespace AutoBroswer
         {
             bool bRet = false;
             FileLogger.Instance.LogInfo("当前文档状态:" + this.InitialTabBrowser.ReadyState);
-            if (this.InitialTabBrowser.ReadyState != WebBrowserReadyState.Complete)
+            if (m_currentStep != ECurrentStep.ECurrentStep_Load && this.InitialTabBrowser.ReadyState != WebBrowserReadyState.Complete)
                 return;
             string innerHtml = this.InitialTabBrowser.Document.Body.InnerHtml;
             string str1 = this.InitialTabBrowser.Document.Url.ToString();
@@ -297,17 +294,12 @@ namespace AutoBroswer
                 {
                     this.InitialTabBrowser.Document.GetElementById("q").InnerText = keyWord;
                     this.InitialTabBrowser.Document.GetElementById("J_TSearchForm").InvokeMember("submit");
+                    isOpenningURL = true;
                     m_currentStep = ECurrentStep.ECurrentStep_Search;
+                    openURLExpireTime = DateTime.Now.AddMilliseconds(OPENURLTIMEOUT);
+                    pageExpireTime = DateTime.Now.AddMilliseconds(ImpossibleTime);
                     lastURL = str1;
                 }
-                //if (bRet)
-                //{
-                //    FileLogger.Instance.LogInfo("搜索正在等待跳转");
-                //}
-                //else
-                //{
-                //    FileLogger.Instance.LogInfo("s搜索失败，没有跳转");
-                //}
             }
             else if (m_currentStep == ECurrentStep.ECurrentStep_Search)
             {
@@ -316,6 +308,8 @@ namespace AutoBroswer
                     SetTimerDownEnable(5);
                     //searchInPage();
                     autoBroswerFrom.currentStep.Text = "查找宝贝";
+                    pageExpireTime = DateTime.Now.AddMilliseconds(ImpossibleTime);
+                    isOpenningURL = false;
                     lastURL = str1;
                 }
                 
@@ -327,8 +321,11 @@ namespace AutoBroswer
                     SetTimerDownEnable(5);
 
                     autoBroswerFrom.currentStep.Text = "货比三家回搜索页";
-                    pageMoniterTimer.Enabled = false;
-                    pageMoniterTimer.Stop();
+
+                    pageExpireTime = DateTime.Now.AddMilliseconds(ImpossibleTime);
+                    isOpenningURL = false;
+                    //pageMoniterTimer.Enabled = false;
+                    //pageMoniterTimer.Stop();
                 }
                 else if ((str1.IndexOf("http://item.taobao.com") > -1 || str1.IndexOf("http://detail.tmall.com") > -1) && innerHtml != "")
                 {
@@ -336,28 +333,10 @@ namespace AutoBroswer
 
                     autoBroswerFrom.currentStep.Text = "货比三家";
 
-                    m_iOtherItemStopTime = autoBroswerFrom.rndGenerator.Next(20, 30);
-                    pageMoniterTimer.Interval = m_iOtherItemStopTime * millSeconds;
-                    pageMoniterTimer.Enabled = true;
-                    pageMoniterTimer.Start();
+                    m_iOtherItemStopTime = autoBroswerFrom.rndGenerator.Next(10, 20);
+                    pageExpireTime = DateTime.Now.AddMilliseconds(m_iOtherItemStopTime * millSeconds);
+                    isOpenningURL = false;
                 }
-                //SetTimerDownEnable(50);
-                //if (m_isNativeBack)
-                //{
-                //    autoBroswerFrom.currentStep.Text = "货比三家回搜索页";
-                //    pageMoniterTimer.Enabled = false;
-                //    pageMoniterTimer.Stop();
-                //}
-                //else
-                //{
-
-                //    autoBroswerFrom.currentStep.Text = "货比三家";
-
-                //    m_iOtherItemStopTime = autoBroswerFrom.rndGenerator.Next(20, 30);
-                //    pageMoniterTimer.Interval = m_iOtherItemStopTime * millSeconds;
-                //    pageMoniterTimer.Enabled = true;
-                //    pageMoniterTimer.Start();
-                //}
 
             }
             else if (m_currentStep == ECurrentStep.ECurrentStep_Visit_Me_Main)
@@ -374,9 +353,9 @@ namespace AutoBroswer
                     FileLogger.Instance.LogInfo(labStr);
                     autoBroswerFrom.stopTimeLabel.Text = labStr;
 
-                    pageMoniterTimer.Interval = stopTime * millSeconds;
-                    pageMoniterTimer.Enabled = true;
-                    pageMoniterTimer.Start();
+                    isOpenningURL = false;
+                    pageExpireTime = DateTime.Now.AddMilliseconds(stopTime * millSeconds);
+
                 }
                 
             }
@@ -393,15 +372,14 @@ namespace AutoBroswer
                 }
                 else
                 {
-                    stopTime = autoBroswerFrom.rndGenerator.Next(30, 50);
+                    stopTime = autoBroswerFrom.rndGenerator.Next(10, 20);
                 }
                 string labStr = "首页停留时间:" + stopTime + "S";
                 FileLogger.Instance.LogInfo(labStr);
                 autoBroswerFrom.stopTimeLabel.Text = labStr;
 
-                pageMoniterTimer.Interval = stopTime * millSeconds;
-                pageMoniterTimer.Enabled = true;
-                pageMoniterTimer.Start();
+                isOpenningURL = false;
+                pageExpireTime = DateTime.Now.AddMilliseconds(stopTime * millSeconds);
             }
             else if (m_currentStep == ECurrentStep.ECurrentStep_Visit_Me_Other)
             {
@@ -415,18 +393,12 @@ namespace AutoBroswer
                     FileLogger.Instance.LogInfo(labStr);
                     autoBroswerFrom.stopTimeLabel.Text = labStr;
 
-                    pageMoniterTimer.Interval = stopTime * millSeconds;
-                    pageMoniterTimer.Enabled = true;
-                    pageMoniterTimer.Start();
+                    isOpenningURL = false;
+                    pageExpireTime = DateTime.Now.AddMilliseconds(stopTime * millSeconds);
                 }
 
                 
             }
-        }
-        void expireTimer_Tick(object sender, EventArgs e)
-        {
-            isNormalQuit = true;
-            ShutDownWinForms();
         }
 
         void timeDown_Tick(object sender, EventArgs e)
@@ -574,11 +546,6 @@ namespace AutoBroswer
                         break;
                     }
                 }
-                //string hrefAttrName = linkEle.GetAttribute("href");
-                //if (otherItemRegex.IsMatch(hrefAttrName))
-                //{
-                //    totalItemLinkList.Add(linkEle);
-                //}
             }
 
             int totalMainPageCount = totalEnterMainPageLinkList.Count;
@@ -723,6 +690,8 @@ namespace AutoBroswer
             //Tabs.SelectTab(0);//返回 默认的Tab
             //InitialTabBrowser.Document.InvokeScript("eventFire", new object[] { visitItem.All[0].All[0] });     
             ClickItemByPicBox(InitialTabBrowser.Handle, ref visitItem);
+            isOpenningURL = true;
+            openURLExpireTime = DateTime.Now.AddMilliseconds(OPENURLTIMEOUT);
             m_currentStep = ECurrentStep.ECurrentStep_Visit_Compare;
             return true;
         }
@@ -762,6 +731,8 @@ namespace AutoBroswer
             visitItem.SetAttribute("target", "_top");
 
             ClickItemByItem(InitialTabBrowser.Handle, InitialTabBrowser.Document, visitItem);
+            isOpenningURL = true;
+            openURLExpireTime = DateTime.Now.AddMilliseconds(OPENURLTIMEOUT);
             m_currentStep = ECurrentStep.ECurrentStep_Visit_Me_Other;
             return true;
         }
@@ -855,6 +826,8 @@ namespace AutoBroswer
             HtmlElement itemPicEle = itemBoxEle.All[0].All[0];
             itemPicEle.All[0].SetAttribute("target", "_top");
             ClickItemByPicBox(InitialTabBrowser.Handle, ref itemPicEle);
+            isOpenningURL = true;
+            openURLExpireTime = DateTime.Now.AddMilliseconds(OPENURLTIMEOUT);
             m_currentStep = ECurrentStep.ECurrentStep_Visit_Me_Main;
             return true;
         }
@@ -867,6 +840,8 @@ namespace AutoBroswer
             m_myMainPageElement.SetAttribute("target", "_top");
             FileLogger.Instance.LogInfo("进入首页:" + m_myMainPageElement.InnerHtml);
             ClickItemByItem(InitialTabBrowser.Handle, InitialTabBrowser.Document, m_myMainPageElement);
+            isOpenningURL = true;
+            openURLExpireTime = DateTime.Now.AddMilliseconds(OPENURLTIMEOUT);
             m_currentStep = ECurrentStep.ECurrentStep_Visit_Me_MainPage;
             return true;
         }
@@ -1026,7 +1001,27 @@ namespace AutoBroswer
             timeDown.Enabled = true;
             timeDown.Start();
         }
-
+        public void TimerTick(object source, EventArgs e)
+        {
+            if (isOpenningURL && DateTime.Now > openURLExpireTime)
+            {
+                FileLogger.Instance.LogInfo("CurrentState:" + m_currentStep);
+                FileLogger.Instance.LogInfo("OpenURL fail:" + InitialTabBrowser.Document.Url.ToString());
+                isNormalQuit = true;
+                ShutDownWinForms();
+            }
+            if (DateTime.Now > jobExpireTime)
+            {
+                FileLogger.Instance.LogInfo("CurrentState:" + m_currentStep);
+                FileLogger.Instance.LogInfo("任务超时了:" + InitialTabBrowser.Document.Url.ToString());
+                isNormalQuit = true;
+                ShutDownWinForms();
+            }
+            if (DateTime.Now > pageExpireTime)
+            {
+                PageMoniterTimeEvent( source, e);
+            }
+        }
         private bool m_isNativeBack = false;
         public void PageMoniterTimeEvent( object source, EventArgs e)
         {
@@ -1080,8 +1075,7 @@ namespace AutoBroswer
                 }
                 
             }
-            pageMoniterTimer.Enabled = false;
-            pageMoniterTimer.Stop();
+            pageExpireTime = DateTime.Now.AddMilliseconds(ImpossibleTime);
         }
 
 
@@ -1089,8 +1083,7 @@ namespace AutoBroswer
         {
             timeUp.Enabled = false;
             timeDown.Enabled = false;
-            pageMoniterTimer.Enabled = false;
-            m_openURLTimer.Dispose();
+            moniterTimer.Enabled = false;
             this.Close();
             this.Dispose();
         }
