@@ -17,6 +17,8 @@ namespace AutoBroswer
         System.Windows.Forms.Timer timeUp = new System.Windows.Forms.Timer();
         System.Windows.Forms.Timer pageMoniterTimer = new System.Windows.Forms.Timer();
         System.Windows.Forms.Timer expireTimer = new System.Windows.Forms.Timer();
+
+        System.Threading.Timer m_openURLTimer;
         public int randMoveInterval = 50;
 
         [DllImport("user32.dll")]
@@ -70,11 +72,11 @@ namespace AutoBroswer
 
         private List<HtmlElement> m_mainItemClickElement;//详情页三个模块点击
         private List<HtmlElement> m_mainItemSpanElement;//详情页Span模块点击
-        private List<HtmlElement> m_otherItemClickElement;//自家其它宝贝
 
         private string m_otherItemPattern = @"http://item.taobao.com/item.htm?(.*)id=(\d{11})$";
 
         public bool isNormalQuit = false;
+        private bool m_live = true;
         private int m_randCompCount = 0;//随机货比三家个数
         private int m_randDeepItemCount = 0;//访问深度
         Regex otherItemRegex;
@@ -89,7 +91,6 @@ namespace AutoBroswer
 
             m_mainItemClickElement = new List<HtmlElement>();
             m_mainItemSpanElement = new List<HtmlElement>();
-            m_otherItemClickElement = new List<HtmlElement>();
 
             pageMoniterTimer.Tick += new EventHandler(PageMoniterTimeEvent);
 
@@ -110,18 +111,13 @@ namespace AutoBroswer
         {
             this.FormBorderStyle = FormBorderStyle.None;
             this.TopLevel = false;
-            //this.Location = _AutoBroswer.webBrowserPanel.Location;
             this.Size = _AutoBroswer.webBrowserPanel.Size;
             m_uaString = uaString;
 
-            
-            //InitialTabBrowser.Location = _AutoBroswer.webBrowserPanel.Location;
-            //InitialTabBrowser.Size = _AutoBroswer.webBrowserPanel.Size;
             if (_AutoBroswer.webBrowserPanel.InvokeRequired)
             {
                 _AutoBroswer.webBrowserPanel.BeginInvoke(new MethodInvoker(delegate
                 {
-                    //_AutoBroswer.webBrowserPanel.Controls.Add(this);
                     this.Parent = _AutoBroswer.webBrowserPanel;
                     
                 }));
@@ -141,27 +137,9 @@ namespace AutoBroswer
             InitialTabBrowser.ProgressChanged += new WebBrowserProgressChangedEventHandler(InitialTabBrowser_ProgressChangedForSomething);
             //InitialTabBrowser.Navigating +=new WebBrowserNavigatingEventHandler(InitialTabBrowser_Navigating);
             //InitialTabBrowser.Navigated += new WebBrowserNavigatedEventHandler(InitialTabBrowser_Navigated);
-            bool live = true;
-            InitialTabBrowser.ProgressChanged += delegate { live = true; };
-            System.Threading.Timer t = new System.Threading.Timer(
-                m => this.Invoke((Action)delegate
-                {
-                    //还没加载完，并且连续30秒没有进度增加了。
-                    if (!live && InitialTabBrowser.ReadyState != WebBrowserReadyState.Complete)
-                    {
-                        ShutDownWinForms();
-                    }
-                    live = false;//检查过就设置为false，如果下一次进入循环，还是false表明进度没增加，可以考虑结束打开了
-                }), null, 0, 20000);//30秒检测，我们不检查是否结束了。而是判断是否仍然在尝试打开，这样如果网速慢就不至于错判
-            //System.Threading.Timer t = new System.Threading.Timer(
-            //        m => this.Invoke((Action)delegate
-            //        {
-            //            if (InitialTabBrowser.ReadyState != WebBrowserReadyState.Complete)
-            //            {
-            //                ShutDownWinForms();//终止掉
-            //            }
-            //        }), null, 30000, System.Threading.Timeout.Infinite);//30秒检测
 
+            InitialTabBrowser.ProgressChanged += delegate { m_live = true; };
+                        
             timeDown.Interval = 100;
             timeDown.Tick += new EventHandler(timeDown_Tick);
             timeUp.Interval = 100;
@@ -177,6 +155,19 @@ namespace AutoBroswer
             initValue();
 
             InitialTabBrowser.Navigate("http://www.taobao.com/");
+
+            m_openURLTimer = new System.Threading.Timer(
+                m => this.Invoke((Action)delegate
+                {
+                    if (!m_live && InitialTabBrowser.ReadyState != WebBrowserReadyState.Complete)
+                    {
+                        FileLogger.Instance.LogInfo("还没加载完，并且连续20秒没有进度增加了，当前状态:" + InitialTabBrowser.ReadyState);
+                        isNormalQuit = true;
+                        ShutDownWinForms();
+                    }
+                    m_live = false;//检查过就设置为false，如果下一次进入循环，还是false表明进度没增加，可以考虑结束打开了
+                }), null, 0, 20000);//20秒检测，我们不检查是否结束了。而是判断是否仍然在尝试打开，这样如果网速慢就不至于错判
+
         }
 
         public bool searchBroswer(string keyword)
@@ -248,7 +239,8 @@ namespace AutoBroswer
         {
             // Display an error message to the user.
             //MessageBox.Show("Cannot navigate to " + e.Url);
-            FileLogger.Instance.LogInfo("load fail:" + e.Url);
+            FileLogger.Instance.LogInfo("load fail:" + e.Url + " Status:" + e.StatusCode);
+            isNormalQuit = true;
             this.ShutDownWinForms();
         }
         public void InitialTabBrowser_ProgressChangedForSomething(object sender, WebBrowserProgressChangedEventArgs e)
@@ -283,6 +275,7 @@ namespace AutoBroswer
         public void doMainJob()
         {
             bool bRet = false;
+            FileLogger.Instance.LogInfo("当前文档状态:" + this.InitialTabBrowser.ReadyState);
             if (this.InitialTabBrowser.ReadyState != WebBrowserReadyState.Complete)
                 return;
             string innerHtml = this.InitialTabBrowser.Document.Body.InnerHtml;
@@ -384,8 +377,6 @@ namespace AutoBroswer
                     pageMoniterTimer.Interval = stopTime * millSeconds;
                     pageMoniterTimer.Enabled = true;
                     pageMoniterTimer.Start();
-                    
-                    lastURL = str1;
                 }
                 
             }
@@ -411,7 +402,6 @@ namespace AutoBroswer
                 pageMoniterTimer.Interval = stopTime * millSeconds;
                 pageMoniterTimer.Enabled = true;
                 pageMoniterTimer.Start();
-                getRandItemInMainPage();
             }
             else if (m_currentStep == ECurrentStep.ECurrentStep_Visit_Me_Other)
             {
@@ -428,7 +418,6 @@ namespace AutoBroswer
                     pageMoniterTimer.Interval = stopTime * millSeconds;
                     pageMoniterTimer.Enabled = true;
                     pageMoniterTimer.Start();
-                    lastURL = str1;
                 }
 
                 
@@ -503,48 +492,18 @@ namespace AutoBroswer
                                 }
 
                             }
-                            else
-                            {
-
-                            }
                         }
                         break;
                     case ECurrentStep.ECurrentStep_Visit_Me_MainPage:
-                        {
-                            if (m_isNativeBack)
-                            {
-                                //autoBroswerFrom.currentStep.Text = "返回个人首页";
-                                m_isNativeBack = false;
-
-                                if (m_randDeepItemCount == 0)
-                                {
-                                    //job done
-                                    FileLogger.Instance.LogInfo("首页访问结束，找不到其它宝贝？");
-                                    isNormalQuit = true;
-                                    ShutDownWinForms();
-                                }
-                                else
-                                {
-                                    bool bRandVisitOther = true;
-                                    getRandItemInMainPage();
-                                    bRandVisitOther = randVisitOtherItem();
-                                    if (bRandVisitOther)
-                                    {
-                                        m_randDeepItemCount--;
-                                    }
-                                }
-
-                            }
-                            else
-                            {
-
-                            }
-                        }
                         break;
                     case ECurrentStep.ECurrentStep_Visit_Me_Main:
                     case ECurrentStep.ECurrentStep_Visit_Me_Other:
                         {
-                            getRandClickMainItem();
+                            if (lastURL != InitialTabBrowser.Document.Url.ToString())
+                            {
+                                getRandClickMainItem();
+                                lastURL = InitialTabBrowser.Document.Url.ToString();
+                            }
                             clickItemPage();
                         }
                         
@@ -583,43 +542,11 @@ namespace AutoBroswer
             
             return true;
         }
-        public bool getRandItemInMainPage()
-        {
-            //首页随机获取其它宝贝
-            List<HtmlElement> totalItemLinkList = new List<HtmlElement>();//首页页面里面所有的其它宝贝链接
 
-            var linkElements = InitialTabBrowser.Document.GetElementsByTagName("a");
-            foreach (HtmlElement linkEle in linkElements)
-            {
-                // If there's more than one button, you can check the
-                //element.InnerHTML to see if it's the one you want
-                if (linkEle.InnerText == null)
-                {
-                    continue;
-                }
-                string hrefAttrName = linkEle.GetAttribute("href");
-                if (otherItemRegex.IsMatch(hrefAttrName))
-                {
-                    totalItemLinkList.Add(linkEle);
-                }
-
-            }
-
-            //深度随机
-            int totalItemCounts = totalItemLinkList.Count;
-            FileLogger.Instance.LogInfo("访问深度:" + m_randDeepItemCount);
-
-            int randItemIndex = autoBroswerFrom.rndGenerator.Next(0, totalItemCounts);
-            HtmlElement selectItem = totalItemLinkList[randItemIndex];
-            m_otherItemClickElement.Add(selectItem);
-            //FileLogger.Instance.LogInfo("其他宝贝:" + selectItem.OuterHtml);
-
-            return true;
-        }
         public bool getRandClickMainItem()
         {
             //宝贝详情页面 鼠标点击点
-            List<HtmlElement> totalItemLinkList = new List<HtmlElement>();//主宝贝页面里面所有的其它宝贝链接
+            //List<HtmlElement> totalItemLinkList = new List<HtmlElement>();//主宝贝页面里面所有的其它宝贝链接
             List<HtmlElement> totalEnterMainPageLinkList = new List<HtmlElement>();//进入首页的方式
             var linkElements = InitialTabBrowser.Document.GetElementsByTagName("a");
             foreach (HtmlElement linkEle in linkElements)
@@ -647,12 +574,11 @@ namespace AutoBroswer
                         break;
                     }
                 }
-                string hrefAttrName = linkEle.GetAttribute("href");
-                if (otherItemRegex.IsMatch(hrefAttrName))
-                {
-                    totalItemLinkList.Add(linkEle);
-                }
-                
+                //string hrefAttrName = linkEle.GetAttribute("href");
+                //if (otherItemRegex.IsMatch(hrefAttrName))
+                //{
+                //    totalItemLinkList.Add(linkEle);
+                //}
             }
 
             int totalMainPageCount = totalEnterMainPageLinkList.Count;
@@ -802,15 +728,37 @@ namespace AutoBroswer
         }
         public bool randVisitOtherItem()
         {
-            int leftVisitCount = m_otherItemClickElement.Count;
-            if (leftVisitCount == 0)
+            //随机获取其它宝贝
+            List<HtmlElement> totalItemLinkList = new List<HtmlElement>();//页面里面所有的其它宝贝链接
+
+            var linkElements = InitialTabBrowser.Document.GetElementsByTagName("a");
+            foreach (HtmlElement linkEle in linkElements)
+            {
+                if (linkEle.InnerText == null)
+                {
+                    continue;
+                }
+                string hrefAttrName = linkEle.GetAttribute("href");
+                if (otherItemRegex.IsMatch(hrefAttrName))
+                {
+                    totalItemLinkList.Add(linkEle);
+                }
+
+            }
+
+            //深度随机
+            int totalItemCounts = totalItemLinkList.Count;
+            FileLogger.Instance.LogInfo("当前访问深度:" + m_randDeepItemCount);
+            if (totalItemCounts == 0)
+            {
+                return false;
+            }
+            int randItemIndex = autoBroswerFrom.rndGenerator.Next(0, totalItemCounts);
+            HtmlElement visitItem = totalItemLinkList[randItemIndex];
+            if (visitItem == null)
             {
                 return false;//访问结束了
             }
-
-            HtmlElement visitItem = m_otherItemClickElement[0];
-            m_otherItemClickElement.Remove(visitItem);
-            //Tabs.SelectTab(0);//返回 默认的Tab
             visitItem.SetAttribute("target", "_top");
 
             ClickItemByItem(InitialTabBrowser.Handle, InitialTabBrowser.Document, visitItem);
@@ -826,11 +774,6 @@ namespace AutoBroswer
             p.X += visitItem.OffsetRectangle.Width / 2;
             p.Y += visitItem.OffsetRectangle.Height / 2;
 
-            //Rectangle rect = wbElementMouseSimulate.GetElementRect(InitialTabBrowser.Document.Body.DomElement as mshtml.IHTMLElement, visitItem.DomElement as mshtml.IHTMLElement);
-
-            //p.X = rect.Left + rect.Width / 4;
-            //p.Y = rect.Top + rect.Height / 4;
-            //RandMove(hwnd, 500, rect);
             ClickOnPointInClient(hwnd, p);
 
             ClientToScreen(hwnd, ref p);
@@ -886,11 +829,12 @@ namespace AutoBroswer
             p.Y -= doc.GetElementsByTagName("HTML")[0].ScrollTop;
 
             Rectangle rect = wbElementMouseSimulate.GetElementRect(doc.Body.DomElement as mshtml.IHTMLElement, visitItem.DomElement as mshtml.IHTMLElement);
-
-            p.X = rect.Left + rect.Width / 4;
-            p.Y = rect.Top + rect.Height / 4;
+            p.X = rect.Left + 3;
+            p.Y = rect.Top + 3;
+            
             RandMove(hwnd, 500, rect);
             ClickOnPointInClient(hwnd, p);
+            
             //ClickOnPoint(hwnd, p);
             return true;
         }
@@ -1024,10 +968,6 @@ namespace AutoBroswer
             int currentRandMoveTimes = 0;
             int randMoveCount = moveTime / randMoveInterval;
             BlockInput(true);
-
-            //this.Activate();
-            //this.WindowState = FormWindowState.Normal;
-            //SetForegroundWindow(wndHandle);
             while (currentRandMoveTimes <= randMoveCount)
             {
                 int randOffsetX = autoBroswerFrom.rndGenerator.Next(0, randMoveRect.Width);
@@ -1043,56 +983,6 @@ namespace AutoBroswer
             }
 
             BlockInput(false);
-        }
-
-        private void RandMoveInClient(IntPtr wndHandle, int moveTime, Rectangle randMoveRect)
-        {
-            int currentRandMoveTimes = 0;
-            int randMoveCount = moveTime / randMoveInterval;
-            IntPtr handle = wndHandle;
-            StringBuilder className = new StringBuilder(100);
-            const UInt32 WM_MOUSEMOVE = 0x0200;
-            while (className.ToString() != "Internet Explorer_Server") // your mileage may vary with this classname
-            {
-                handle = GetWindow(handle, 5); // 5 == child
-                GetClassName(handle, className, className.Capacity);
-            }
-
-            while (currentRandMoveTimes <= randMoveCount)
-            {
-                int randOffsetX = autoBroswerFrom.rndGenerator.Next(0, randMoveRect.Width);
-                int randOffsetY = autoBroswerFrom.rndGenerator.Next(0, randMoveRect.Height);
-                Point clientPoint = new Point(randOffsetX + randMoveRect.Left, randOffsetY + randMoveRect.Top);
-
-                int position = ((clientPoint.Y) << 16) | (clientPoint.X);
-                AutoBroswerForm.PostMessage(handle, WM_MOUSEMOVE, (int)1, position);
-                currentRandMoveTimes++;
-                Thread.Sleep(randMoveInterval);
-            }
-
-        }
-
-
-        private void ClickOnPoint(IntPtr wndHandle, Point clientPoint)
-        {
-            //this.Activate();
-            //this.WindowState = FormWindowState.Normal;
-            //SetForegroundWindow(wndHandle);
-
-            FileLogger.Instance.LogInfo("clientX:" + clientPoint.X + ",Y:" + clientPoint.Y);
-            Point oldPos = Cursor.Position;
-            ClientToScreen(wndHandle, ref clientPoint);
-            FileLogger.Instance.LogInfo("screenX:" + clientPoint.X + ",Y:" + clientPoint.Y);
-            /// set cursor on coords, and press mouse
-            BlockInput(true);
-            Cursor.Position = new Point(clientPoint.X, clientPoint.Y);
-            
-            //Thread.Sleep(1000);
-            mouse_event(0x00000002, 0, 0, 0, UIntPtr.Zero); /// left mouse button down
-            mouse_event(0x00000004, 0, 0, 0, UIntPtr.Zero); /// left mouse button up
-            //Thread.Sleep(50);
-            BlockInput(false);
-            //Cursor.Position = oldPos;
         }
 
         private void ClickOnPointInClient(IntPtr wndHandle, Point clientPoint)
@@ -1175,14 +1065,13 @@ namespace AutoBroswer
                 if (m_randDeepItemCount == 0)
                 {
                     //job done
-                    FileLogger.Instance.LogInfo("首页访问结束，找不到其它宝贝？");
+                    FileLogger.Instance.LogInfo("随机宝贝访问结束，找不到其它宝贝？");
                     isNormalQuit = true;
                     ShutDownWinForms();
                 }
                 else
                 {
                     bool bRandVisitOther = true;
-                    getRandItemInMainPage();
                     bRandVisitOther = randVisitOtherItem();
                     if (bRandVisitOther)
                     {
@@ -1201,6 +1090,7 @@ namespace AutoBroswer
             timeUp.Enabled = false;
             timeDown.Enabled = false;
             pageMoniterTimer.Enabled = false;
+            m_openURLTimer.Dispose();
             this.Close();
             this.Dispose();
         }

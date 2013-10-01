@@ -276,6 +276,8 @@ namespace AutoBroswer
             }
             catch (Exception error)
             {
+                FileLogger.Instance.LogInfo("Error:" + error.Message);
+                FileLogger.Instance.LogInfo("StackTrace:" + error.StackTrace);
                 nonParameterThread1.Abort();
                 MessageBox.Show(error.Message, "error!");
                 Console.WriteLine(error.Message.ToString());
