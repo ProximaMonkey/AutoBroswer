@@ -85,6 +85,9 @@
     <Compile Include="FileLogger.cs" />
     <Compile Include="invalidcode.cs" />
     <Compile Include="IpModel.cs" />
+    <Compile Include="ListViewEx.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="AutoBroswerForm.resx">

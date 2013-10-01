@@ -17,7 +17,8 @@ using System.Text.RegularExpressions;
 using System.Net;
 using HtmlAgilityPack;
 using System.Net.Sockets;
-using Microsoft.Win32; //
+using Microsoft.Win32;
+using System.Collections.Specialized; //
 
 namespace AutoBroswer
 {
@@ -113,6 +114,8 @@ namespace AutoBroswer
 
         private string m_uaBroswerPattern = @"(.*)=(.*)";
         Regex m_uaBroswerRegex;
+        private string m_keywordPattern = @"\[(.*)\]\[(.*)\]\[(.*)\]";
+        Regex m_keywordRegex;
 
         public struct STBroserInfo
         {
@@ -132,8 +135,10 @@ namespace AutoBroswer
         public AutoBroswerForm()
         {
             InitializeComponent();
+            InitListView();
 
             m_uaBroswerRegex = new Regex(m_uaBroswerPattern);
+            m_keywordRegex = new Regex(m_keywordPattern);
             long tick = DateTime.Now.Ticks;
             int randSeed = ((int)(tick & 0xffffffffL) | (int)(tick >> 32));
             rndGenerator = new Random(randSeed);
@@ -144,9 +149,9 @@ namespace AutoBroswer
 
         public bool loadKeyWord()
         {
-            string keyWorldText = keywordRichTB.Text;
+            //string keyWorldText = keywordRichTB.Text;
 
-            string[] lines = Regex.Split(keyWorldText, "\n");
+            string[] lines = Regex.Split("", "\n");
             foreach (string line in lines)
             {
                 if (line.Trim() != "")
@@ -648,13 +653,31 @@ namespace AutoBroswer
         {
             try
             {
-                keywordRichTB.Text = File.ReadAllText("KeyWord.txt", Encoding.Default);
-
-                string uaString = File.ReadAllText("myua.txt", Encoding.Default);
-                string[] lines = Regex.Split(uaString, "\n");
+                //keywordRichTB.Text = File.ReadAllText("KeyWord.txt", Encoding.Default);
+                string fileLines = File.ReadAllText("KeyWord.txt", Encoding.Default);
+                string[] lines = Regex.Split(fileLines, "\n");
                 foreach (string line in lines)
                 {
-                    
+                    if (line.Trim() != "")
+                    {
+                        MatchCollection matches = m_keywordRegex.Matches(line);
+                        
+                        foreach (Match m in matches)
+                        {
+                            ListViewItem item = new ListViewItem("在这里填入关键词");
+                            item.SubItems[0].Text = (m.Groups[1].Value);
+                            item.SubItems.Add(m.Groups[2].Value);
+                            item.SubItems.Add(m.Groups[3].Value);
+                            listView1.Items.Add(item);
+                        }
+
+                    }
+                }
+
+                string uaString = File.ReadAllText("myua.txt", Encoding.Default);
+                lines = Regex.Split(uaString, "\n");
+                foreach (string line in lines)
+                {
                     if (line.Trim() != "")
                     {
                         MatchCollection matches = m_uaBroswerRegex.Matches(line); 
@@ -682,7 +705,7 @@ namespace AutoBroswer
         {
             try
             {
-                File.WriteAllText("KeyWord.txt", keywordRichTB.Text, Encoding.Default);
+                //File.WriteAllText("KeyWord.txt", keywordRichTB.Text, Encoding.Default);
                 FileLogger.Instance.Close();
                 nonParameterThread1.Abort();
             }
@@ -1013,6 +1036,100 @@ namespace AutoBroswer
                 this.simulateStopBtn.Text = "恢复";
             }
         }
+
+        #region 关键词LISTVIEW
+        private System.Windows.Forms.ColumnHeader columnHeader1;
+        private System.Windows.Forms.ColumnHeader columnHeader2;
+        private System.Windows.Forms.ColumnHeader columnHeader3;
+        private ListViewEx listView1;
+        public void InitListView()
+        {
+            this.listView1 = new ListViewEx();
+            this.columnHeader1 = new System.Windows.Forms.ColumnHeader();
+            this.columnHeader2 = new System.Windows.Forms.ColumnHeader();
+            this.columnHeader3 = new System.Windows.Forms.ColumnHeader();
+            this.SuspendLayout();
+            // 
+            // listViewMain
+            // 
+            this.listView1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.listView1.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+            this.columnHeader1,
+            this.columnHeader2,
+            this.columnHeader3});
+            this.listView1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.listView1.Font = new System.Drawing.Font("Tahoma", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.listView1.FullRowSelect = true;
+            this.listView1.GridLines = true;
+            // If subitem is not added, add it automatically on clicking an item.
+            this.listView1.AddSubItem = true;
+
+            this.listView1.Parent = keywordPanel;
+            this.listView1.Dock = DockStyle.Fill;
+            // Make the Name and adress columns editable
+            this.listView1.AddEditableCell(-1, 0);
+            this.listView1.AddEditableCell(-1, 2);
+
+            // Create data for combobox
+            StringCollection grades = new StringCollection();
+            grades.AddRange(new string[] { "综合", "销量", "人气"});
+
+            // Set the combobox
+            this.listView1.AddComboBoxCell(-1, 1, grades); 
+
+            //this.listView1.ColumnClick += new System.Windows.Forms.ColumnClickEventHandler(this.listView1_ColumnClick);
+            // 
+            // columnHeader1
+            // 
+            this.columnHeader1.Text = "关键词";
+            this.columnHeader1.Width = keywordPanel.Width * 6/10;
+            // 
+            // columnHeader2
+            // 
+            this.columnHeader2.Text = "排列";
+            this.columnHeader2.Width = keywordPanel.Width * 2 / 10;
+            // 
+            // columnHeader3
+            // 
+            this.columnHeader3.Text = "页码范围";
+            this.columnHeader3.Width = keywordPanel.Width * 2/10;
+
+            this.listView1.View = System.Windows.Forms.View.Details;
+        }
+
+        private void keywordSaveBTN_Click(object sender, EventArgs e)
+        {
+            string fileLines = "";
+            foreach (ListViewItem item in listView1.Items)
+            {
+                fileLines += "[" + item.SubItems[0].Text + "]" + "[" + item.SubItems[1].Text + "]" + "[" + item.SubItems[2].Text + "]";
+                fileLines += "\n";
+            }
+            File.WriteAllText("KeyWord.txt", fileLines, Encoding.Default);
+        }
+
+        private void keywordAddBTN_Click(object sender, EventArgs e)
+        {
+            ListViewItem item = new ListViewItem("在这里填入关键词");
+           
+            listView1.Items.Add(item);
+        }
+
+        private void keywordDeleteBTN_Click(object sender, EventArgs e)
+        {
+            if (listView1.SelectedItems.Count == 0)
+            {
+                MessageBox.Show("请先选中", "错误");
+                return;
+            }
+            foreach(ListViewItem item in listView1.SelectedItems)
+            {
+                listView1.Items.Remove(item);
+            }
+            //listView1.RemoveEmbeddedControl()
+        }
+        #endregion
+
 
     }
 }

@@ -43,7 +43,6 @@
             this.otherItemMaxTimeTXT = new System.Windows.Forms.TextBox();
             this.otherItemMinTimeTXT = new System.Windows.Forms.TextBox();
             this.label6 = new System.Windows.Forms.Label();
-            this.keywordRichTB = new System.Windows.Forms.RichTextBox();
             this.label7 = new System.Windows.Forms.Label();
             this.sellerNameTB = new System.Windows.Forms.TextBox();
             this.jobExpireTimer = new System.Windows.Forms.TextBox();
@@ -63,6 +62,10 @@
             this.label9 = new System.Windows.Forms.Label();
             this.URLTextBox = new System.Windows.Forms.TextBox();
             this.webBrowserPanel = new System.Windows.Forms.Panel();
+            this.keywordPanel = new System.Windows.Forms.Panel();
+            this.keywordSaveBTN = new System.Windows.Forms.Button();
+            this.keywordAddBTN = new System.Windows.Forms.Button();
+            this.keywordDeleteBTN = new System.Windows.Forms.Button();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -70,7 +73,7 @@
             // 
             // beginBTN
             // 
-            this.beginBTN.Location = new System.Drawing.Point(331, 351);
+            this.beginBTN.Location = new System.Drawing.Point(537, 316);
             this.beginBTN.Name = "beginBTN";
             this.beginBTN.Size = new System.Drawing.Size(74, 22);
             this.beginBTN.TabIndex = 0;
@@ -83,7 +86,7 @@
             this.compareCB.AutoSize = true;
             this.compareCB.Checked = true;
             this.compareCB.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.compareCB.Location = new System.Drawing.Point(256, 47);
+            this.compareCB.Location = new System.Drawing.Point(537, 54);
             this.compareCB.Name = "compareCB";
             this.compareCB.Size = new System.Drawing.Size(96, 16);
             this.compareCB.TabIndex = 1;
@@ -93,7 +96,7 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(251, 95);
+            this.label1.Location = new System.Drawing.Point(532, 102);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(53, 12);
             this.label1.TabIndex = 2;
@@ -102,7 +105,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(251, 121);
+            this.label2.Location = new System.Drawing.Point(532, 128);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(65, 12);
             this.label2.TabIndex = 3;
@@ -111,7 +114,7 @@
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(251, 237);
+            this.label3.Location = new System.Drawing.Point(532, 244);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(47, 12);
             this.label3.TabIndex = 5;
@@ -119,7 +122,7 @@
             // 
             // broswerNumTXT
             // 
-            this.broswerNumTXT.Location = new System.Drawing.Point(323, 234);
+            this.broswerNumTXT.Location = new System.Drawing.Point(604, 241);
             this.broswerNumTXT.Name = "broswerNumTXT";
             this.broswerNumTXT.Size = new System.Drawing.Size(44, 21);
             this.broswerNumTXT.TabIndex = 6;
@@ -137,14 +140,14 @@
             "3",
             "4",
             "5"});
-            this.visitDeepCB.Location = new System.Drawing.Point(322, 92);
+            this.visitDeepCB.Location = new System.Drawing.Point(603, 99);
             this.visitDeepCB.Name = "visitDeepCB";
             this.visitDeepCB.Size = new System.Drawing.Size(70, 20);
             this.visitDeepCB.TabIndex = 7;
             // 
             // mainItemMinTimeTXT
             // 
-            this.mainItemMinTimeTXT.Location = new System.Drawing.Point(322, 118);
+            this.mainItemMinTimeTXT.Location = new System.Drawing.Point(603, 125);
             this.mainItemMinTimeTXT.MaxLength = 3;
             this.mainItemMinTimeTXT.Name = "mainItemMinTimeTXT";
             this.mainItemMinTimeTXT.Size = new System.Drawing.Size(44, 21);
@@ -154,7 +157,7 @@
             // 
             // mainItemMaxTimeTXT
             // 
-            this.mainItemMaxTimeTXT.Location = new System.Drawing.Point(398, 118);
+            this.mainItemMaxTimeTXT.Location = new System.Drawing.Point(679, 125);
             this.mainItemMaxTimeTXT.Name = "mainItemMaxTimeTXT";
             this.mainItemMaxTimeTXT.Size = new System.Drawing.Size(41, 21);
             this.mainItemMaxTimeTXT.TabIndex = 9;
@@ -164,7 +167,7 @@
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(375, 121);
+            this.label4.Location = new System.Drawing.Point(656, 128);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(17, 12);
             this.label4.TabIndex = 10;
@@ -173,7 +176,7 @@
             // visitDeepRndCheckBox
             // 
             this.visitDeepRndCheckBox.AutoSize = true;
-            this.visitDeepRndCheckBox.Location = new System.Drawing.Point(408, 96);
+            this.visitDeepRndCheckBox.Location = new System.Drawing.Point(689, 103);
             this.visitDeepRndCheckBox.Name = "visitDeepRndCheckBox";
             this.visitDeepRndCheckBox.Size = new System.Drawing.Size(72, 16);
             this.visitDeepRndCheckBox.TabIndex = 11;
@@ -183,7 +186,7 @@
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(375, 148);
+            this.label5.Location = new System.Drawing.Point(656, 155);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(17, 12);
             this.label5.TabIndex = 15;
@@ -191,7 +194,7 @@
             // 
             // otherItemMaxTimeTXT
             // 
-            this.otherItemMaxTimeTXT.Location = new System.Drawing.Point(398, 145);
+            this.otherItemMaxTimeTXT.Location = new System.Drawing.Point(679, 152);
             this.otherItemMaxTimeTXT.Name = "otherItemMaxTimeTXT";
             this.otherItemMaxTimeTXT.Size = new System.Drawing.Size(41, 21);
             this.otherItemMaxTimeTXT.TabIndex = 14;
@@ -200,7 +203,7 @@
             // 
             // otherItemMinTimeTXT
             // 
-            this.otherItemMinTimeTXT.Location = new System.Drawing.Point(322, 145);
+            this.otherItemMinTimeTXT.Location = new System.Drawing.Point(603, 152);
             this.otherItemMinTimeTXT.MaxLength = 3;
             this.otherItemMinTimeTXT.Name = "otherItemMinTimeTXT";
             this.otherItemMinTimeTXT.Size = new System.Drawing.Size(44, 21);
@@ -211,25 +214,16 @@
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(251, 148);
+            this.label6.Location = new System.Drawing.Point(532, 155);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(77, 12);
             this.label6.TabIndex = 12;
             this.label6.Text = "其它宝贝时间";
             // 
-            // keywordRichTB
-            // 
-            this.keywordRichTB.Location = new System.Drawing.Point(6, 6);
-            this.keywordRichTB.Name = "keywordRichTB";
-            this.keywordRichTB.Size = new System.Drawing.Size(239, 361);
-            this.keywordRichTB.TabIndex = 16;
-            this.keywordRichTB.Text = "铁观音  茶农直销\n铁观音茶叶正品\n铁观音浓香型";
-            this.keywordRichTB.WordWrap = false;
-            // 
             // label7
             // 
             this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(251, 180);
+            this.label7.Location = new System.Drawing.Point(532, 187);
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(41, 12);
             this.label7.TabIndex = 17;
@@ -237,7 +231,7 @@
             // 
             // sellerNameTB
             // 
-            this.sellerNameTB.Location = new System.Drawing.Point(322, 177);
+            this.sellerNameTB.Location = new System.Drawing.Point(603, 184);
             this.sellerNameTB.Name = "sellerNameTB";
             this.sellerNameTB.Size = new System.Drawing.Size(158, 21);
             this.sellerNameTB.TabIndex = 18;
@@ -245,7 +239,7 @@
             // 
             // jobExpireTimer
             // 
-            this.jobExpireTimer.Location = new System.Drawing.Point(398, 68);
+            this.jobExpireTimer.Location = new System.Drawing.Point(679, 75);
             this.jobExpireTimer.Name = "jobExpireTimer";
             this.jobExpireTimer.Size = new System.Drawing.Size(65, 21);
             this.jobExpireTimer.TabIndex = 19;
@@ -255,7 +249,7 @@
             // label8
             // 
             this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(251, 71);
+            this.label8.Location = new System.Drawing.Point(532, 78);
             this.label8.Name = "label8";
             this.label8.Size = new System.Drawing.Size(125, 12);
             this.label8.TabIndex = 20;
@@ -264,7 +258,7 @@
             // isDebugCB
             // 
             this.isDebugCB.AutoSize = true;
-            this.isDebugCB.Location = new System.Drawing.Point(385, 47);
+            this.isDebugCB.Location = new System.Drawing.Point(666, 54);
             this.isDebugCB.Name = "isDebugCB";
             this.isDebugCB.Size = new System.Drawing.Size(84, 16);
             this.isDebugCB.TabIndex = 21;
@@ -277,7 +271,7 @@
             this.ipComboBox.Items.AddRange(new object[] {
             "91VPN",
             "http://vipiu.net 免费代理"});
-            this.ipComboBox.Location = new System.Drawing.Point(277, 7);
+            this.ipComboBox.Location = new System.Drawing.Point(558, 14);
             this.ipComboBox.Name = "ipComboBox";
             this.ipComboBox.Size = new System.Drawing.Size(186, 20);
             this.ipComboBox.TabIndex = 22;
@@ -285,7 +279,7 @@
             // IP
             // 
             this.IP.AutoSize = true;
-            this.IP.Location = new System.Drawing.Point(254, 10);
+            this.IP.Location = new System.Drawing.Point(535, 17);
             this.IP.Name = "IP";
             this.IP.Size = new System.Drawing.Size(17, 12);
             this.IP.TabIndex = 23;
@@ -293,7 +287,7 @@
             // 
             // getIPBtn
             // 
-            this.getIPBtn.Location = new System.Drawing.Point(469, 5);
+            this.getIPBtn.Location = new System.Drawing.Point(750, 12);
             this.getIPBtn.Name = "getIPBtn";
             this.getIPBtn.Size = new System.Drawing.Size(75, 23);
             this.getIPBtn.TabIndex = 24;
@@ -303,7 +297,7 @@
             // 
             // stopIPBtn
             // 
-            this.stopIPBtn.Location = new System.Drawing.Point(561, 5);
+            this.stopIPBtn.Location = new System.Drawing.Point(842, 12);
             this.stopIPBtn.Name = "stopIPBtn";
             this.stopIPBtn.Size = new System.Drawing.Size(75, 23);
             this.stopIPBtn.TabIndex = 25;
@@ -323,7 +317,10 @@
             // 
             // tabPage1
             // 
-            this.tabPage1.Controls.Add(this.keywordRichTB);
+            this.tabPage1.Controls.Add(this.keywordDeleteBTN);
+            this.tabPage1.Controls.Add(this.keywordAddBTN);
+            this.tabPage1.Controls.Add(this.keywordSaveBTN);
+            this.tabPage1.Controls.Add(this.keywordPanel);
             this.tabPage1.Controls.Add(this.stopIPBtn);
             this.tabPage1.Controls.Add(this.beginBTN);
             this.tabPage1.Controls.Add(this.getIPBtn);
@@ -348,10 +345,10 @@
             this.tabPage1.Controls.Add(this.otherItemMaxTimeTXT);
             this.tabPage1.Controls.Add(this.label6);
             this.tabPage1.Controls.Add(this.otherItemMinTimeTXT);
-            this.tabPage1.Location = new System.Drawing.Point(4, 21);
+            this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(1054, 552);
+            this.tabPage1.Size = new System.Drawing.Size(1054, 551);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "配置";
             this.tabPage1.UseVisualStyleBackColor = true;
@@ -365,10 +362,10 @@
             this.tabPage2.Controls.Add(this.label9);
             this.tabPage2.Controls.Add(this.URLTextBox);
             this.tabPage2.Controls.Add(this.webBrowserPanel);
-            this.tabPage2.Location = new System.Drawing.Point(4, 21);
+            this.tabPage2.Location = new System.Drawing.Point(4, 22);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(1054, 552);
+            this.tabPage2.Size = new System.Drawing.Size(1054, 551);
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "模拟点击";
             this.tabPage2.UseVisualStyleBackColor = true;
@@ -433,6 +430,43 @@
             this.webBrowserPanel.Size = new System.Drawing.Size(1049, 485);
             this.webBrowserPanel.TabIndex = 0;
             // 
+            // keywordPanel
+            // 
+            this.keywordPanel.Location = new System.Drawing.Point(5, 10);
+            this.keywordPanel.Name = "keywordPanel";
+            this.keywordPanel.Size = new System.Drawing.Size(478, 471);
+            this.keywordPanel.TabIndex = 26;
+            // 
+            // keywordSaveBTN
+            // 
+            this.keywordSaveBTN.Location = new System.Drawing.Point(6, 497);
+            this.keywordSaveBTN.Name = "keywordSaveBTN";
+            this.keywordSaveBTN.Size = new System.Drawing.Size(75, 23);
+            this.keywordSaveBTN.TabIndex = 27;
+            this.keywordSaveBTN.Text = "保存";
+            this.keywordSaveBTN.UseVisualStyleBackColor = true;
+            this.keywordSaveBTN.Click += new System.EventHandler(this.keywordSaveBTN_Click);
+            // 
+            // keywordAddBTN
+            // 
+            this.keywordAddBTN.Location = new System.Drawing.Point(132, 497);
+            this.keywordAddBTN.Name = "keywordAddBTN";
+            this.keywordAddBTN.Size = new System.Drawing.Size(75, 23);
+            this.keywordAddBTN.TabIndex = 28;
+            this.keywordAddBTN.Text = "添加";
+            this.keywordAddBTN.UseVisualStyleBackColor = true;
+            this.keywordAddBTN.Click += new System.EventHandler(this.keywordAddBTN_Click);
+            // 
+            // keywordDeleteBTN
+            // 
+            this.keywordDeleteBTN.Location = new System.Drawing.Point(254, 497);
+            this.keywordDeleteBTN.Name = "keywordDeleteBTN";
+            this.keywordDeleteBTN.Size = new System.Drawing.Size(75, 23);
+            this.keywordDeleteBTN.TabIndex = 29;
+            this.keywordDeleteBTN.Text = "删除";
+            this.keywordDeleteBTN.UseVisualStyleBackColor = true;
+            this.keywordDeleteBTN.Click += new System.EventHandler(this.keywordDeleteBTN_Click);
+            // 
             // AutoBroswerForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -470,7 +504,6 @@
         private System.Windows.Forms.TextBox otherItemMaxTimeTXT;
         private System.Windows.Forms.TextBox otherItemMinTimeTXT;
         private System.Windows.Forms.Label label6;
-        private System.Windows.Forms.RichTextBox keywordRichTB;
         private System.Windows.Forms.Label label7;
         private System.Windows.Forms.TextBox sellerNameTB;
         private System.Windows.Forms.TextBox jobExpireTimer;
@@ -490,6 +523,10 @@
         public System.Windows.Forms.Label stopTimeLabel;
         private System.Windows.Forms.Label simulateInfoText;
         private System.Windows.Forms.Button simulateStopBtn;
+        private System.Windows.Forms.Panel keywordPanel;
+        private System.Windows.Forms.Button keywordDeleteBTN;
+        private System.Windows.Forms.Button keywordAddBTN;
+        private System.Windows.Forms.Button keywordSaveBTN;
     }
 }
 
