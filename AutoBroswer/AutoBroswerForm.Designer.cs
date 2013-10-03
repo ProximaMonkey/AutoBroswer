@@ -54,6 +54,10 @@
             this.stopIPBtn = new System.Windows.Forms.Button();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
+            this.keywordDeleteBTN = new System.Windows.Forms.Button();
+            this.keywordAddBTN = new System.Windows.Forms.Button();
+            this.keywordSaveBTN = new System.Windows.Forms.Button();
+            this.keywordPanel = new System.Windows.Forms.Panel();
             this.tabPage2 = new System.Windows.Forms.TabPage();
             this.simulateInfoText = new System.Windows.Forms.Label();
             this.simulateStopBtn = new System.Windows.Forms.Button();
@@ -62,10 +66,6 @@
             this.label9 = new System.Windows.Forms.Label();
             this.URLTextBox = new System.Windows.Forms.TextBox();
             this.webBrowserPanel = new System.Windows.Forms.Panel();
-            this.keywordPanel = new System.Windows.Forms.Panel();
-            this.keywordSaveBTN = new System.Windows.Forms.Button();
-            this.keywordAddBTN = new System.Windows.Forms.Button();
-            this.keywordDeleteBTN = new System.Windows.Forms.Button();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -235,7 +235,7 @@
             this.sellerNameTB.Name = "sellerNameTB";
             this.sellerNameTB.Size = new System.Drawing.Size(158, 21);
             this.sellerNameTB.TabIndex = 18;
-            this.sellerNameTB.Text = "铁状元";
+            this.sellerNameTB.Text = "一壶春秋86";
             // 
             // jobExpireTimer
             // 
@@ -312,7 +312,7 @@
             this.tabControl1.Location = new System.Drawing.Point(2, 12);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(1062, 577);
+            this.tabControl1.Size = new System.Drawing.Size(1134, 577);
             this.tabControl1.TabIndex = 26;
             // 
             // tabPage1
@@ -352,6 +352,43 @@
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "配置";
             this.tabPage1.UseVisualStyleBackColor = true;
+            // 
+            // keywordDeleteBTN
+            // 
+            this.keywordDeleteBTN.Location = new System.Drawing.Point(254, 497);
+            this.keywordDeleteBTN.Name = "keywordDeleteBTN";
+            this.keywordDeleteBTN.Size = new System.Drawing.Size(75, 23);
+            this.keywordDeleteBTN.TabIndex = 29;
+            this.keywordDeleteBTN.Text = "删除";
+            this.keywordDeleteBTN.UseVisualStyleBackColor = true;
+            this.keywordDeleteBTN.Click += new System.EventHandler(this.keywordDeleteBTN_Click);
+            // 
+            // keywordAddBTN
+            // 
+            this.keywordAddBTN.Location = new System.Drawing.Point(132, 497);
+            this.keywordAddBTN.Name = "keywordAddBTN";
+            this.keywordAddBTN.Size = new System.Drawing.Size(75, 23);
+            this.keywordAddBTN.TabIndex = 28;
+            this.keywordAddBTN.Text = "添加";
+            this.keywordAddBTN.UseVisualStyleBackColor = true;
+            this.keywordAddBTN.Click += new System.EventHandler(this.keywordAddBTN_Click);
+            // 
+            // keywordSaveBTN
+            // 
+            this.keywordSaveBTN.Location = new System.Drawing.Point(6, 497);
+            this.keywordSaveBTN.Name = "keywordSaveBTN";
+            this.keywordSaveBTN.Size = new System.Drawing.Size(75, 23);
+            this.keywordSaveBTN.TabIndex = 27;
+            this.keywordSaveBTN.Text = "保存";
+            this.keywordSaveBTN.UseVisualStyleBackColor = true;
+            this.keywordSaveBTN.Click += new System.EventHandler(this.keywordSaveBTN_Click);
+            // 
+            // keywordPanel
+            // 
+            this.keywordPanel.Location = new System.Drawing.Point(5, 10);
+            this.keywordPanel.Name = "keywordPanel";
+            this.keywordPanel.Size = new System.Drawing.Size(478, 471);
+            this.keywordPanel.TabIndex = 26;
             // 
             // tabPage2
             // 
@@ -429,43 +466,6 @@
             this.webBrowserPanel.Name = "webBrowserPanel";
             this.webBrowserPanel.Size = new System.Drawing.Size(1049, 485);
             this.webBrowserPanel.TabIndex = 0;
-            // 
-            // keywordPanel
-            // 
-            this.keywordPanel.Location = new System.Drawing.Point(5, 10);
-            this.keywordPanel.Name = "keywordPanel";
-            this.keywordPanel.Size = new System.Drawing.Size(478, 471);
-            this.keywordPanel.TabIndex = 26;
-            // 
-            // keywordSaveBTN
-            // 
-            this.keywordSaveBTN.Location = new System.Drawing.Point(6, 497);
-            this.keywordSaveBTN.Name = "keywordSaveBTN";
-            this.keywordSaveBTN.Size = new System.Drawing.Size(75, 23);
-            this.keywordSaveBTN.TabIndex = 27;
-            this.keywordSaveBTN.Text = "保存";
-            this.keywordSaveBTN.UseVisualStyleBackColor = true;
-            this.keywordSaveBTN.Click += new System.EventHandler(this.keywordSaveBTN_Click);
-            // 
-            // keywordAddBTN
-            // 
-            this.keywordAddBTN.Location = new System.Drawing.Point(132, 497);
-            this.keywordAddBTN.Name = "keywordAddBTN";
-            this.keywordAddBTN.Size = new System.Drawing.Size(75, 23);
-            this.keywordAddBTN.TabIndex = 28;
-            this.keywordAddBTN.Text = "添加";
-            this.keywordAddBTN.UseVisualStyleBackColor = true;
-            this.keywordAddBTN.Click += new System.EventHandler(this.keywordAddBTN_Click);
-            // 
-            // keywordDeleteBTN
-            // 
-            this.keywordDeleteBTN.Location = new System.Drawing.Point(254, 497);
-            this.keywordDeleteBTN.Name = "keywordDeleteBTN";
-            this.keywordDeleteBTN.Size = new System.Drawing.Size(75, 23);
-            this.keywordDeleteBTN.TabIndex = 29;
-            this.keywordDeleteBTN.Text = "删除";
-            this.keywordDeleteBTN.UseVisualStyleBackColor = true;
-            this.keywordDeleteBTN.Click += new System.EventHandler(this.keywordDeleteBTN_Click);
             // 
             // AutoBroswerForm
             // 

@@ -122,7 +122,20 @@ namespace AutoBroswer
             public string m_uaDesc;
             public string m_uaContent;
         }
-        List<string> keywordCollection = new List<string>();
+        public struct STKeyInfo
+        {
+            public void initSTKeyInfo()
+            {
+                m_sortType = 0;
+                m_startPage = 1;
+                m_endPage = 100;
+            }
+            public string m_keyword;
+            public int m_sortType;
+            public int m_startPage;
+            public int m_endPage;
+        }
+        List<STKeyInfo> keyInfoCollection = new List<STKeyInfo>();
         List<STBroserInfo> broswerUACollection = new List<STBroserInfo>();
         enum EIPSelect
         {
@@ -146,48 +159,19 @@ namespace AutoBroswer
             ipComboBox.SelectedIndex = 1;
             
         }
-
-        public bool loadKeyWord()
-        {
-            //string keyWorldText = keywordRichTB.Text;
-
-            string[] lines = Regex.Split("", "\n");
-            foreach (string line in lines)
-            {
-                if (line.Trim() != "")
-                {
-                    keywordCollection.Add(line);
-                }
-            }
-            return keywordCollection.Count != 0;
-        }
-
-        public string getRandKeyWord()
-        {
-            int keywordCnt = keywordCollection.Count;
-            if (keywordCnt == 1)
-            {
-                return keywordCollection[0];
-            }
-            int randIndex = 0;
-            if (keywordCnt != 0)
-            {
-                randIndex = rndGenerator.Next(0, keywordCnt);
-                return keywordCollection[randIndex];
-            }
-            return "";
-        }
-
         
         public Random rndGenerator;
         StringBuilder curSelectComboboxName = new StringBuilder(256, 256);
         private void button1_Click(object sender, EventArgs e)
         {
             
-            keywordCollection.Clear();
-            loadKeyWord();
             //runNiuBDASHI();
-            
+            bool bRet = LoadAllSeclecKeyword();
+            if (bRet == false)
+            {
+                MessageBox.Show("关键词为空", "错误");
+                return;
+            }
             if (isDebugCB.Checked == false)
             {
                 if (isVPNRunning() == false)
@@ -212,7 +196,60 @@ namespace AutoBroswer
             
             
         }
-        
+        public bool LoadAllSeclecKeyword()
+        {
+            try
+            {
+                foreach (ListViewItem item in listView1.Items)
+                {
+                    STKeyInfo keyInfo = new STKeyInfo();
+                    keyInfo.initSTKeyInfo();
+
+                    keyInfo.m_keyword = item.SubItems[0].Text.Trim();
+                    keyInfo.m_sortType = sortTypeCollect.IndexOf(item.SubItems[1].Text.Trim());
+                    string pageRange = @"(.*)-(.*)";
+                    Regex pageRangeRegex = new Regex(pageRange);
+                    MatchCollection matches = pageRangeRegex.Matches(item.SubItems[2].Text.Trim());
+
+                    foreach (Match m in matches)
+                    {
+                        Int32.TryParse(m.Groups[1].Value.Trim(), out keyInfo.m_startPage);
+                        Int32.TryParse(m.Groups[2].Value.Trim(), out keyInfo.m_endPage);
+                    }
+                    keyInfoCollection.Add(keyInfo);
+                }
+            }
+            catch (System.Exception ex)
+            {
+                FileLogger.Instance.LogInfo(ex.StackTrace);
+                FileLogger.Instance.LogInfo("Error select keyword");
+                return false;
+            }
+            return true;
+        }
+        public bool selectKeywordInfo(ref STKeyInfo keyInfo)
+        {
+            try
+            {
+                int count = listView1.Items.Count;
+                if (count == 0)
+                {
+                    return false;
+                }
+                int selectIndex = rndGenerator.Next(0, count);
+                keyInfo = keyInfoCollection[selectIndex];
+                
+                return true;
+            }
+            catch (System.Exception ex)
+            {
+                FileLogger.Instance.LogInfo(ex.StackTrace);
+                FileLogger.Instance.LogInfo("Error select keyword");
+                return false;
+            }
+            return true;
+            
+        }
         #region 模拟访问线程
         private void SimulateVisitThread()
         {
@@ -227,9 +264,13 @@ namespace AutoBroswer
                 {
 
                     //int for loop
-                    string keyWord = getRandKeyWord();
-                    if (keyWord == "")
+                    STKeyInfo keyInfo = new STKeyInfo();
+                    keyInfo.initSTKeyInfo();
+
+                    bRet = selectKeywordInfo(ref keyInfo);
+                    if (bRet == false)
                     {
+                        FileLogger.Instance.LogInfo("选择关键词失败");
                         continue;
                     }
 
@@ -241,7 +282,7 @@ namespace AutoBroswer
                         uaString = broswerUACollection[uaIndex].m_uaContent;
                         uaCaptionStr = broswerUACollection[uaIndex].m_uaDesc;
                     }
-                    string searchName = "第 " + index + " 个，" + "关键词:" + keyWord + "";
+                    string searchName = "第 " + index + " 个，" + "关键词:" + keyInfo.m_keyword + "";
                     FileLogger.Instance.LogInfo(searchName);
                     if (isDebugCB.Checked == false)
                     {
@@ -252,7 +293,7 @@ namespace AutoBroswer
                             continue;
                         }
                     }
-                    SimulateTab simulateTab = new SimulateTab(keyWord, uaString, this, expireTimer);
+                    SimulateTab simulateTab = new SimulateTab(keyInfo, uaString, this, expireTimer);
                     simulateInfoText.Text = " IP:" + curSelectComboboxName.ToString() + " 系统浏览器[版本号]:" + uaCaptionStr + " " + searchName;
                     Application.Run(simulateTab);
                     GC.Collect();
@@ -600,7 +641,10 @@ namespace AutoBroswer
         {
             return compareCB.Checked;
         }
-
+        public bool isDebugCBChecked()
+        {
+            return isDebugCB.Checked;
+        }
         public bool isVisitDeepRand()
         {
             return visitDeepRndCheckBox.Checked;
@@ -1041,6 +1085,8 @@ namespace AutoBroswer
         private System.Windows.Forms.ColumnHeader columnHeader1;
         private System.Windows.Forms.ColumnHeader columnHeader2;
         private System.Windows.Forms.ColumnHeader columnHeader3;
+        //private string[] sortTypeArray = new string[] { "综合", "销量", "人气"};
+        private StringCollection sortTypeCollect = new StringCollection();
         private ListViewEx listView1;
         public void InitListView()
         {
@@ -1071,11 +1117,11 @@ namespace AutoBroswer
             this.listView1.AddEditableCell(-1, 2);
 
             // Create data for combobox
-            StringCollection grades = new StringCollection();
-            grades.AddRange(new string[] { "综合", "销量", "人气"});
+            //StringCollection grades = new StringCollection();
+            sortTypeCollect.AddRange(new string[] { "综合", "销量", "人气" });
 
             // Set the combobox
-            this.listView1.AddComboBoxCell(-1, 1, grades); 
+            this.listView1.AddComboBoxCell(-1, 1, sortTypeCollect); 
 
             //this.listView1.ColumnClick += new System.Windows.Forms.ColumnClickEventHandler(this.listView1_ColumnClick);
             // 
