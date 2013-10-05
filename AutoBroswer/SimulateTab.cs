@@ -84,15 +84,18 @@ namespace AutoBroswer
         private List<HtmlElement> m_mainItemSpanElement;//详情页Span模块点击
 
         private string m_otherItemPattern = @"http://item.taobao.com/item.htm?(.*)id=(\d{11})$";
+        private string m_otherTianMallPattern = @"http://detail.tmall.com/item.htm?(.*)id=(\d{11})$";
 
         public bool isNormalQuit = false;
         private int m_randCompCount = 0;//随机货比三家个数
         private int m_randDeepItemCount = 0;//访问深度
         Regex otherItemRegex;
+        Regex otherTianMallRegex;
 
         public bool initValue()
         {
             otherItemRegex = new Regex(m_otherItemPattern);
+            otherTianMallRegex = new Regex(m_otherTianMallPattern);
             m_iMainItemStopMin = autoBroswerFrom.getMainItemMinTime();
             m_iMainItemStopMax = autoBroswerFrom.getMainItemMaxTime();
             m_iOhterItemStopMin = autoBroswerFrom.getOtherItemMinTime();
@@ -139,16 +142,25 @@ namespace AutoBroswer
                 UserAgent = uaString
             };
 
-
+            timeDown.Interval = 100;
+            timeUp.Interval = 100;
             InitialTabBrowser.NavigateError += new AutoBroswer.ExtendedWebBrowser.WebBrowserNavigateErrorEventHandler(InitialTabBrowser_NavigateError);
-            InitialTabBrowser.DocumentCompleted += new WebBrowserDocumentCompletedEventHandler(InitialTabBrowser_DocumentCompleted);
+            if (_keyInfo.isZTCClick())
+            {
+                timeDown.Tick += new EventHandler(timeDownZTC_Tick);
+                timeUp.Tick += new EventHandler(timeUpZTC_Tick);
+                InitialTabBrowser.DocumentCompleted += new WebBrowserDocumentCompletedEventHandler(InitialTabBrowser_ZTCDocumentCompleted);
+            }
+            else
+            {
+                timeDown.Tick += new EventHandler(timeDown_Tick);
+                timeUp.Tick += new EventHandler(timeUp_Tick);
+                InitialTabBrowser.DocumentCompleted += new WebBrowserDocumentCompletedEventHandler(InitialTabBrowser_DocumentCompleted);
+            }
             InitialTabBrowser.ProgressChanged += new WebBrowserProgressChangedEventHandler(InitialTabBrowser_ProgressChangedForSomething);
            
                         
-            timeDown.Interval = 100;
-            timeDown.Tick += new EventHandler(timeDown_Tick);
-            timeUp.Interval = 100;
-            timeUp.Tick += new EventHandler(timeUp_Tick);
+            
 
             jobExpireTime = DateTime.Now.AddMilliseconds(expireTime);
 
@@ -265,6 +277,16 @@ namespace AutoBroswer
         {
             FileLogger.Instance.LogInfo("Navigated URL:" + e.Url);
         }
+        public void InitialTabBrowser_ZTCDocumentCompleted(object sender, WebBrowserDocumentCompletedEventArgs e)
+        {
+            HtmlElement head = InitialTabBrowser.Document.GetElementsByTagName("head")[0];
+            HtmlElement testScript = InitialTabBrowser.Document.CreateElement("script");
+            IHTMLScriptElement element = (IHTMLScriptElement)testScript.DomElement;
+            element.text = wbElementMouseSimulate.m_simulateJS;
+
+            head.AppendChild(testScript);
+            doMainJobZTC();
+        }
         public void InitialTabBrowser_DocumentCompleted(object sender, WebBrowserDocumentCompletedEventArgs e)
         {
             HtmlElement head = InitialTabBrowser.Document.GetElementsByTagName("head")[0];
@@ -292,7 +314,7 @@ namespace AutoBroswer
 
             if (m_currentStep == ECurrentStep.ECurrentStep_Load)
             {
-                DateTime dateExpire = DateTime.Parse("2013-10-05 12:30:01");
+                DateTime dateExpire = DateTime.Parse("2013-10-25 12:30:01");
                 if (DateTime.Now > dateExpire)
                 {
                     MessageBox.Show("未知错误，可能淘宝又变标签了，请联系作者", "出错啦！");
@@ -410,6 +432,429 @@ namespace AutoBroswer
                 
             }
         }
+#region 直通车
+
+        ECurrentStep m_lastStep;
+        bool bFirstLoadSearch = true;
+        public HtmlElement searchIsFoundZTC(ref bool isFound)
+        {
+            //HtmlElement foundAnchorEle = null;
+            var linkElements = InitialTabBrowser.Document.GetElementsByTagName("a");
+            foreach (HtmlElement linkEle in linkElements)
+            {
+                // If there's more than one button, you can check the
+                //element.InnerHTML to see if it's the one you want
+                string titleName = linkEle.GetAttribute("title");
+                if (titleName == keyInfo.m_ztcTitle)
+                {
+                    m_myItemElement = linkEle;
+                    break;
+                }
+            }
+            linkElements = InitialTabBrowser.Document.GetElementsByTagName("span");
+            foreach (HtmlElement linkEle in linkElements)
+            {
+                if (linkEle.InnerText == null)
+                {
+                    continue;
+                }
+                string className = linkEle.GetAttribute("className");
+                if (className == "page-cur")
+                {
+                    Int32.TryParse(linkEle.InnerText, out currentPage);
+                    break;
+                }
+            }
+            if (m_myItemElement == null)
+            {
+                isFound = false;
+                return m_myItemElement;
+            }
+            isFound = true;
+            return m_myItemElement;
+        }
+        bool FindLinkToClick(HtmlElement root, string text, ref HtmlElement found)
+        {
+            foreach (var child in root.Children)
+            {
+                var element = (HtmlElement)child;
+                if (element.InnerText == text)
+                {
+                    found = element.Parent;
+                    return true;
+                }
+                if (FindLinkToClick(element, text, ref found))
+                    return true;
+            }
+            return false;
+        }
+
+        public void ClickPrice()
+        {
+            var linkElements = InitialTabBrowser.Document.GetElementsByTagName("input");
+            HtmlElement startPriceEle = null;
+            HtmlElement endPriceEle = null;
+            HtmlElement divBtnPriceEle = null;
+            HtmlElement btnPriceEle = null;
+            foreach (HtmlElement linkEle in linkElements)
+            {
+                string className = linkEle.GetAttribute("name");
+                if (className == "start_price")
+                {
+                    startPriceEle = linkEle;
+                }
+                if (className == "end_price")
+                {
+                    endPriceEle = linkEle;
+                }
+            }
+            linkElements = InitialTabBrowser.Document.GetElementsByTagName("div");
+            foreach (HtmlElement linkEle in linkElements)
+            {
+                string className = linkEle.GetAttribute("className");
+                if (className == "btns clearfix")
+                {
+                    divBtnPriceEle = linkEle;
+                    break;
+                }
+            }
+            if (divBtnPriceEle == null)
+            {
+                FileLogger.Instance.LogInfo("找不到");
+                return;
+            }
+            InitialTabBrowser.Document.GetElementById("rank-priceform").Focus();
+            btnPriceEle = divBtnPriceEle.Children[0].Children[0];
+            //Thread.Sleep(1000);
+            startPriceEle.ScrollIntoView(true);
+            //Rectangle rect = wbElementMouseSimulate.GetElementRect(InitialTabBrowser.Document.Body.DomElement as mshtml.IHTMLElement, endPriceEle.DomElement as mshtml.IHTMLElement);
+            //FileLogger.Instance.LogInfo("6:" + p.X); 
+            
+            //InitialTabBrowser.Document.Window.ScrollTo(0, rect.Top - rect.Height * 2);
+            string startPriceStr = keyInfo.m_startPrice.ToString();
+            //ClickItemByItem(InitialTabBrowser.Handle, InitialTabBrowser.Document, startPriceEle);
+            startPriceEle.SetAttribute("value", startPriceStr);
+            //int Y = rect.Top - InitialTabBrowser.Document.GetElementsByTagName("HTML")[0].ScrollTop;
+            //SimulateClick(endPriceEle, new Point(0, 0));
+            string endPriceStr = keyInfo.m_endPrice.ToString();
+            endPriceEle.SetAttribute("value", endPriceStr);
+            endPriceEle.RaiseEvent("onmousedown");
+            Application.DoEvents();
+            //endPriceEle.Focus();
+            //endPriceEle.RaiseEvent("submit");
+            //endPriceEle.InvokeMember("click");
+            //Thread.Sleep(10000);
+            //btnPriceEle.SetAttribute("class", "i on");
+            ////HtmlElementCollection elements = this.InitialTabBrowser.Document.GetElementsByTagName("Form");
+
+            ////foreach (HtmlElement currentElement in elements)
+            ////{
+            ////    currentElement.InvokeMember("submit");
+            ////}
+            //InitialTabBrowser.Document.GetElementById("rank-priceform").Focus();
+            //InitialTabBrowser.Document.GetElementById("rank-priceform").InvokeMember("submit");
+            //InitialTabBrowser.Document.GetElementById("rank-priceform").All[0].All[1].InvokeMember("submit");
+          
+            btnPriceEle.Focus();
+             
+            //btnPriceEle.InvokeMember("submit");
+            //btnPriceEle.RaiseEvent("onclick");
+            btnPriceEle.InvokeMember("click", null);
+            //btnPriceEle.ScrollIntoView(true);  
+            //divBtnPriceEle.All[0].InvokeMember("submit");
+            ////Point p = GetOffset(btnPriceEle);
+            //SimulateClick(btnPriceEle, new Point(0, 0));
+            //mshtml.IHTMLDocument3 doc3 = InitialTabBrowser.Document.DomDocument as mshtml.IHTMLDocument3;
+            ////doc3.GET
+            //mshtml.IHTMLElement htmlElem = btnPriceEle.DomElement as mshtml.IHTMLElement;
+            //htmlElem.click();
+        }
+        public void doMainJobZTC()
+        {
+            //bool bRet = false;
+            FileLogger.Instance.LogInfo("当前文档状态:" + this.InitialTabBrowser.ReadyState);
+            if ((m_currentStep != ECurrentStep.ECurrentStep_Load && m_currentStep != ECurrentStep.ECurrentStep_Search)
+                && this.InitialTabBrowser.ReadyState != WebBrowserReadyState.Complete)
+                return;
+            if (m_currentStep == ECurrentStep.ECurrentStep_Search && bFirstLoadSearch &&
+                InitialTabBrowser.ReadyState != WebBrowserReadyState.Complete)
+            {
+                return;
+            }
+            string innerHtml = this.InitialTabBrowser.Document.Body.InnerHtml;
+            string str1 = this.InitialTabBrowser.Document.Url.ToString();
+            FileLogger.Instance.LogInfo("当前步骤:" + m_currentStep);
+            //FileLogger.Instance.LogInfo("Cookie:" + InitialTabBrowser.Document.Cookie);
+            autoBroswerFrom.URLTextBox.Text = str1;
+
+            if (m_currentStep == ECurrentStep.ECurrentStep_Load)
+            {
+                DateTime dateExpire = DateTime.Parse("2013-10-25 12:30:01");
+                if (DateTime.Now > dateExpire)
+                {
+                    MessageBox.Show("未知错误，可能淘宝又变标签了，请联系作者", "出错啦！");
+                    return;
+                }
+                //bRet = searchBroswer(keyWord);
+                if (str1.IndexOf("http://www.taobao.com/") > -1 && innerHtml.IndexOf("淘宝网首页") > -1)
+                {
+                    this.InitialTabBrowser.Document.GetElementById("q").InnerText = keyInfo.m_keyword;
+                    this.InitialTabBrowser.Document.GetElementById("J_TSearchForm").InvokeMember("submit");
+                    isOpenningURL = true;
+                    m_lastStep = m_currentStep;
+                    m_currentStep = ECurrentStep.ECurrentStep_Search;
+                    openURLExpireTime = DateTime.Now.AddMilliseconds(OPENURLTIMEOUT);
+                    pageExpireTime = DateTime.Now.AddMilliseconds(ImpossibleTime);
+                    lastURL = str1;
+                }
+            }
+            else if (m_currentStep == ECurrentStep.ECurrentStep_Search)
+            {
+                
+                if (str1.IndexOf("http://s.taobao.com/search") > -1 && innerHtml.IndexOf("所有分类") > -1 && m_lastStep == ECurrentStep.ECurrentStep_Load)
+                {
+                    ClickPrice();
+                    bFirstLoadSearch = false;
+                    m_lastStep = ECurrentStep.ECurrentStep_Search;
+                    autoBroswerFrom.currentStep.Text = "查找宝贝";
+                    pageExpireTime = DateTime.Now.AddMilliseconds(ImpossibleTime);
+                    isOpenningURL = false;
+                    lastURL = str1;
+                }
+                else if (str1.IndexOf("http://s.taobao.com/search") > -1 && innerHtml.IndexOf("所有分类") > -1)
+                {
+                    //if (str1.Contains("filter=reserve_price") == false)
+                    //{
+                    //    return;
+                    //}
+                    SetTimerDownEnable(5);
+                    //searchInPage();
+                    autoBroswerFrom.currentStep.Text = "查找宝贝";
+                    pageExpireTime = DateTime.Now.AddMilliseconds(ImpossibleTime);
+                    isOpenningURL = false;
+                    lastURL = str1;
+                }
+
+            }
+            else if (m_currentStep == ECurrentStep.ECurrentStep_Visit_Compare)
+            {
+                if (str1.IndexOf("http://s.taobao.com/search") > -1 && innerHtml.IndexOf("所有分类") > -1)
+                {
+                    SetTimerDownEnable(5);
+
+                    autoBroswerFrom.currentStep.Text = "货比三家回搜索页";
+
+                    pageExpireTime = DateTime.Now.AddMilliseconds(ImpossibleTime);
+                    isOpenningURL = false;
+                    //pageMoniterTimer.Enabled = false;
+                    //pageMoniterTimer.Stop();
+                }
+                else if ((str1.IndexOf("http://item.taobao.com") > -1 || str1.IndexOf("http://detail.tmall.com") > -1) && innerHtml != "")
+                {
+                    SetTimerDownEnable(50);
+
+                    autoBroswerFrom.currentStep.Text = "货比三家";
+
+                    m_iOtherItemStopTime = autoBroswerFrom.rndGenerator.Next(7, 15);
+                    pageExpireTime = DateTime.Now.AddMilliseconds(m_iOtherItemStopTime * millSeconds);
+                    isOpenningURL = false;
+                }
+
+            }
+            else if (m_currentStep == ECurrentStep.ECurrentStep_Visit_Me_Main)
+            {
+                SetTimerDownEnable(500);
+
+                if (lastURL != str1)
+                {
+                    autoBroswerFrom.currentStep.Text = "访问主宝贝";
+
+                    int stopTime = autoBroswerFrom.rndGenerator.Next(m_iMainItemStopMin, m_iMainItemStopMax);
+
+                    string labStr = "主宝贝停留时间:" + stopTime + "S";
+                    FileLogger.Instance.LogInfo(labStr);
+                    autoBroswerFrom.stopTimeLabel.Text = labStr;
+
+                    isOpenningURL = false;
+                    pageExpireTime = DateTime.Now.AddMilliseconds(stopTime * millSeconds);
+                    getRandClickMainItem();
+                }
+
+            }
+            else if (m_currentStep == ECurrentStep.ECurrentStep_Visit_Me_MainPage)
+            {
+                SetTimerDownEnable(300);
+
+                autoBroswerFrom.currentStep.Text = "访问首页";
+
+                int stopTime = 0;
+                if (m_isNativeBack)
+                {
+                    stopTime = autoBroswerFrom.rndGenerator.Next(3, 8);
+                }
+                else
+                {
+                    stopTime = autoBroswerFrom.rndGenerator.Next(8, 15);
+                }
+                string labStr = "首页停留时间:" + stopTime + "S";
+                FileLogger.Instance.LogInfo(labStr);
+                autoBroswerFrom.stopTimeLabel.Text = labStr;
+
+                isOpenningURL = false;
+                pageExpireTime = DateTime.Now.AddMilliseconds(stopTime * millSeconds);
+            }
+            else if (m_currentStep == ECurrentStep.ECurrentStep_Visit_Me_Other)
+            {
+                SetTimerDownEnable(500);
+                if (lastURL != str1)
+                {
+                    autoBroswerFrom.currentStep.Text = "访问其它随机宝贝";
+
+                    int stopTime = autoBroswerFrom.rndGenerator.Next(m_iOhterItemStopMin, m_iOtherItemStopMax);
+                    string labStr = "其它随机宝贝停留时间:" + stopTime + "S";
+                    FileLogger.Instance.LogInfo(labStr);
+                    autoBroswerFrom.stopTimeLabel.Text = labStr;
+
+                    isOpenningURL = false;
+                    pageExpireTime = DateTime.Now.AddMilliseconds(stopTime * millSeconds);
+                    getRandClickMainItem();
+                }
+
+
+            }
+        }
+        public bool searchInZTCPage()
+        {
+            bool isFound = false;
+            HtmlElement foundAnchorEle = searchIsFoundZTC(ref isFound);
+            if (isFound)
+            {
+                FileLogger.Instance.LogInfo("在当前页:" + currentPage + " 找到");
+                if (m_randCompCount != 0)
+                {
+                    //randSelectOtherItem();
+                    randVisitOtherItemInSearch();
+                    m_randCompCount--;
+                }
+                else
+                {
+                    visitMe();
+                }
+            }
+            else
+            {
+                m_currentStep = ECurrentStep.ECurrentStep_Search;
+                FileLogger.Instance.LogInfo("在当前页:" + currentPage + ",没有找到，下一页继续");
+                if (currentPage >= keyInfo.m_startPage && currentPage <= keyInfo.m_endPage)
+                {
+                    gotoNextPage();
+                }
+                else if (currentPage <= keyInfo.m_endPage)
+                {
+                    //jump to startpage
+                    jumpToPage(keyInfo.m_startPage);
+                }
+                else
+                {
+                    //stop search
+                    jobExpireTime = DateTime.Now.AddMilliseconds(-10 * 1000);
+                }
+
+            }
+            return true;
+        }
+        void timeDownZTC_Tick(object sender, EventArgs e)
+        {
+            HtmlDocument doc = (HtmlDocument)InitialTabBrowser.Document;
+            if (doc.Body == null)
+            {
+                return;
+            }
+            int height = doc.Body.ScrollRectangle.Height;
+            currentScrolBarPos += height / 30;
+            if (currentScrolBarPos >= height)
+            {
+                currentScrolBarPos = height;
+                timeDown.Enabled = false;
+                timeUp.Enabled = true;
+
+                switch (m_currentStep)
+                {
+                    case ECurrentStep.ECurrentStep_Search:
+                        timeUp.Enabled = false;
+                        searchInZTCPage();
+                        break;
+                }
+            }
+            doc.Window.ScrollTo(new Point(0, currentScrolBarPos));
+        }
+        void timeUpZTC_Tick(object sender, EventArgs e)
+        {
+            HtmlDocument doc = (HtmlDocument)InitialTabBrowser.Document;
+            int height = doc.Body.ScrollRectangle.Height;
+            currentScrolBarPos -= height / 100;
+
+            if (currentScrolBarPos <= 0)
+            {
+                currentScrolBarPos = 0;
+                timeUp.Enabled = false;
+            }
+            doc.Window.ScrollTo(new Point(0, currentScrolBarPos));
+            if (currentScrolBarPos <= 0)
+            {
+                switch (m_currentStep)
+                {
+                    case ECurrentStep.ECurrentStep_Search:
+                        //searchInPage();
+                        break;
+                    case ECurrentStep.ECurrentStep_Visit_Compare:
+                        {
+                            if (m_isNativeBack)
+                            {
+                                //又到搜索页
+                                if (m_randCompCount == 0)
+                                {
+                                    bool isFound = false;
+                                    HtmlElement foundAnchorEle = searchIsFoundZTC(ref isFound);
+                                    if (isFound)
+                                    {
+                                        visitMe();
+                                        m_isNativeBack = false;
+                                    }
+                                }
+                                else
+                                {
+                                    bool bRandVisitOther = true;
+                                    bRandVisitOther = randVisitOtherItemInSearch();
+                                    if (bRandVisitOther)
+                                    {
+                                        m_randCompCount--;
+                                        m_isNativeBack = false;
+                                    }
+                                }
+
+                            }
+                        }
+                        break;
+                    case ECurrentStep.ECurrentStep_Visit_Me_MainPage:
+                        break;
+                    case ECurrentStep.ECurrentStep_Visit_Me_Main:
+                    case ECurrentStep.ECurrentStep_Visit_Me_Other:
+                        {
+                            if (lastURL != InitialTabBrowser.Document.Url.ToString())
+                            {
+                                lastURL = InitialTabBrowser.Document.Url.ToString();
+                            }
+                            clickItemPage();
+                        }
+
+                        break;
+                }
+
+            }
+        }
+#endregion
+#region 自然点击
 
         void timeDown_Tick(object sender, EventArgs e)
         {
@@ -501,6 +946,7 @@ namespace AutoBroswer
                 
             }
         }
+#endregion
         public bool clickItemPage()
         {
             //详情页面点击
@@ -738,7 +1184,7 @@ namespace AutoBroswer
                     continue;
                 }
                 string hrefAttrName = linkEle.GetAttribute("href");
-                if (otherItemRegex.IsMatch(hrefAttrName))
+                if (otherItemRegex.IsMatch(hrefAttrName) || otherTianMallRegex.IsMatch(hrefAttrName))
                 {
                     totalItemLinkList.Add(linkEle);
                 }
@@ -775,7 +1221,7 @@ namespace AutoBroswer
             p.X += visitItem.OffsetRectangle.Width / 2;
             p.Y += visitItem.OffsetRectangle.Height / 2;
 
-            //InitialTabBrowser.Document.InvokeScript("simulate", new object[] { visitItem.Parent.DomElement, "click" });                    
+            InitialTabBrowser.Document.InvokeScript("simulate", new object[] { visitItem.Parent.DomElement, "click" });                    
             //HtmlElement ele = InitialTabBrowser.Document.GetElementFromPoint(p);
             ClickOnPointInClient(hwnd, p);
 
@@ -927,14 +1373,58 @@ namespace AutoBroswer
         public string prevPage;
         public string nextPage = "1/100";
         public int currentPage = 0;
+        //public bool gotoNextPage()
+        //{
+        //    HtmlElement foundAnchorEle = null;
+        //    var linkElements = InitialTabBrowser.Document.GetElementsByTagName("div");
+        //    foreach (HtmlElement linkEle in linkElements)
+        //    {
+        //        string className = linkEle.GetAttribute("className");
+        //        if (className == "page-top")
+        //        {
+        //            pageInfo = linkEle.InnerText;
+        //            foundAnchorEle = linkEle;
+        //            break;
+        //        }
+        //    }
+        //    HtmlElement nextPageLink = null;
+        //    if (foundAnchorEle == null)
+        //    {
+        //        return false;
+        //    }
+        //    foreach (HtmlElement linkEle in foundAnchorEle.All)
+        //    {
+        //        string className = linkEle.GetAttribute("className");
+        //        if (className == "page-next")
+        //        {
+        //            HtmlElement pageInfoEle = linkEle.FirstChild;
+        //            //pageInfo = pageInfoEle.InnerText;
+        //            nextPageLink = linkEle;
+        //            break;
+        //        }
+        //    }
+        //    if (nextPage == null || nextPageLink == null)
+        //    {
+        //        FileLogger.Instance.LogInfo("没有找到宝贝！");
+        //        isNormalQuit = true;
+        //        ShutDownWinForms();
+        //        return false;
+        //    }
+
+        //    nextPageLink = nextPageLink.All[0];
+        //    //nextPageLink.InvokeMember("click");
+        //    ClickNextPage(InitialTabBrowser.Handle, nextPageLink);
+        //    //nextPageLink.InvokeMember("click");//.click();
+        //    return true;
+        //}
         public bool gotoNextPage()
         {
             HtmlElement foundAnchorEle = null;
-            var linkElements = InitialTabBrowser.Document.GetElementsByTagName("div");
+            var linkElements = InitialTabBrowser.Document.GetElementsByTagName("li");
             foreach (HtmlElement linkEle in linkElements)
             {
                 string className = linkEle.GetAttribute("className");
-                if (className == "page-top")
+                if (className == "next show")
                 {
                     pageInfo = linkEle.InnerText;
                     foundAnchorEle = linkEle;
@@ -946,17 +1436,7 @@ namespace AutoBroswer
             {
                 return false;
             }
-            foreach (HtmlElement linkEle in foundAnchorEle.All)
-            {
-                string className = linkEle.GetAttribute("className");
-                if (className == "page-next")
-                {
-                    HtmlElement pageInfoEle = linkEle.FirstChild;
-                    //pageInfo = pageInfoEle.InnerText;
-                    nextPageLink = linkEle;
-                    break;
-                }
-            }
+            nextPageLink = foundAnchorEle.All[0];
             if (nextPage == null || nextPageLink == null)
             {
                 FileLogger.Instance.LogInfo("没有找到宝贝！");
@@ -965,7 +1445,7 @@ namespace AutoBroswer
                 return false;
             }
 
-            nextPageLink = nextPageLink.All[0];
+            
             //nextPageLink.InvokeMember("click");
             ClickNextPage(InitialTabBrowser.Handle, nextPageLink);
             //nextPageLink.InvokeMember("click");//.click();
@@ -1079,6 +1559,8 @@ namespace AutoBroswer
                 return;
             }
             p.X = p.Y = 0;
+            InitialTabBrowser.Document.InvokeScript("simulate", new object[] { visitItem.DomElement, "focus", "{ pointerX: " + p.X + ", pointerY: " + p.Y + " }" });
+            
             InitialTabBrowser.Document.InvokeScript("simulate", new object[] { visitItem.DomElement, "mouseover", "{ pointerX: " + p.X + ", pointerY: " + p.Y + " }" });
             InitialTabBrowser.Document.InvokeScript("simulate", new object[] { visitItem.DomElement, "mousemove", "{ pointerX: " + p.X + ", pointerY: " + p.Y + " }" });
             InitialTabBrowser.Document.InvokeScript("simulate", new object[] { visitItem.DomElement, "mouseout", "{ pointerX: " + p.X + ", pointerY: " + p.Y + " }" });

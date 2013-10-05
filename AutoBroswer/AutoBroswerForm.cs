@@ -23,6 +23,7 @@ using System.Collections.Specialized; //
 namespace AutoBroswer
 {
 //
+    
     public partial class AutoBroswerForm : Form
     {
         #region winapi
@@ -114,7 +115,7 @@ namespace AutoBroswer
 
         private string m_uaBroswerPattern = @"(.*)=(.*)";
         Regex m_uaBroswerRegex;
-        private string m_keywordPattern = @"\[(.*)\]\[(.*)\]\[(.*)\]";
+        private string m_keywordPattern = @"\[(.*)\]\[(.*)\]\[(.*)\]\[(.*)\]";
         Regex m_keywordRegex;
 
         public struct STBroserInfo
@@ -129,11 +130,26 @@ namespace AutoBroswer
                 m_sortType = 0;
                 m_startPage = 1;
                 m_endPage = 100;
+                m_startPrice = 0;
+                m_endPrice = 0;
+                m_ztcTitle = "";
+            }
+            public bool isPriceValid()
+            {
+                return m_endPrice > m_startPage;
+            }
+            public bool isZTCClick()
+            {
+                return m_sortType == 3;
             }
             public string m_keyword;
             public int m_sortType;
             public int m_startPage;
             public int m_endPage;
+            public float m_startPrice;
+            public float m_endPrice;
+
+            public string m_ztcTitle;
         }
         List<STKeyInfo> keyInfoCollection = new List<STKeyInfo>();
         List<STBroserInfo> broswerUACollection = new List<STBroserInfo>();
@@ -216,6 +232,16 @@ namespace AutoBroswer
                         Int32.TryParse(m.Groups[1].Value.Trim(), out keyInfo.m_startPage);
                         Int32.TryParse(m.Groups[2].Value.Trim(), out keyInfo.m_endPage);
                     }
+
+                    string priceStr = item.SubItems[3].Text.Trim();
+                    if (priceStr.Contains('-'))
+                    {
+                        string startPriceStr = priceStr.Substring(0, priceStr.IndexOf('-'));
+                        string endPriceStr = priceStr.Substring(priceStr.IndexOf('-') + 1);
+                        float.TryParse(startPriceStr, out keyInfo.m_startPrice);
+                        float.TryParse(endPriceStr, out keyInfo.m_endPrice);
+                    }
+                    
                     keyInfoCollection.Add(keyInfo);
                 }
             }
@@ -282,6 +308,7 @@ namespace AutoBroswer
                         uaString = broswerUACollection[uaIndex].m_uaContent;
                         uaCaptionStr = broswerUACollection[uaIndex].m_uaDesc;
                     }
+                    keyInfo.m_ztcTitle = ztcTextBox.Text.Trim().ToString();
                     string searchName = "第 " + index + " 个，" + "关键词:" + keyInfo.m_keyword + "";
                     FileLogger.Instance.LogInfo(searchName);
                     if (isDebugCB.Checked == false)
@@ -546,6 +573,7 @@ namespace AutoBroswer
                     } while ((statusTxt.ToLower().Contains("disconnected") || statusTxt.ToLower().Contains("...") || statusTxt.ToLower().Contains("authen") || statusTxt.ToLower().Contains("connecting")
                         || statusTxt.ToLower().Contains("projection") || statusTxt.ToLower() == "") && waitIndex < m_waitVPNConnectTime);
                     FileLogger.Instance.LogInfo("VPNStatus:" + statusTxt);
+                    Thread.Sleep(500);
                 }
                 else
                 {
@@ -712,6 +740,7 @@ namespace AutoBroswer
                             item.SubItems[0].Text = (m.Groups[1].Value);
                             item.SubItems.Add(m.Groups[2].Value);
                             item.SubItems.Add(m.Groups[3].Value);
+                            item.SubItems.Add(m.Groups[4].Value);
                             listView1.Items.Add(item);
                         }
 
@@ -1085,6 +1114,7 @@ namespace AutoBroswer
         private System.Windows.Forms.ColumnHeader columnHeader1;
         private System.Windows.Forms.ColumnHeader columnHeader2;
         private System.Windows.Forms.ColumnHeader columnHeader3;
+        private System.Windows.Forms.ColumnHeader columnHeader4;
         //private string[] sortTypeArray = new string[] { "综合", "销量", "人气"};
         private StringCollection sortTypeCollect = new StringCollection();
         private ListViewEx listView1;
@@ -1094,6 +1124,7 @@ namespace AutoBroswer
             this.columnHeader1 = new System.Windows.Forms.ColumnHeader();
             this.columnHeader2 = new System.Windows.Forms.ColumnHeader();
             this.columnHeader3 = new System.Windows.Forms.ColumnHeader();
+            this.columnHeader4 = new System.Windows.Forms.ColumnHeader();
             this.SuspendLayout();
             // 
             // listViewMain
@@ -1102,7 +1133,8 @@ namespace AutoBroswer
             this.listView1.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.columnHeader1,
             this.columnHeader2,
-            this.columnHeader3});
+            this.columnHeader3,
+            this.columnHeader4});
             this.listView1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.listView1.Font = new System.Drawing.Font("Tahoma", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.listView1.FullRowSelect = true;
@@ -1115,10 +1147,11 @@ namespace AutoBroswer
             // Make the Name and adress columns editable
             this.listView1.AddEditableCell(-1, 0);
             this.listView1.AddEditableCell(-1, 2);
+            this.listView1.AddEditableCell(-1, 3);
 
             // Create data for combobox
             //StringCollection grades = new StringCollection();
-            sortTypeCollect.AddRange(new string[] { "综合", "销量", "人气" });
+            sortTypeCollect.AddRange(new string[] { "综合", "销量", "人气", "直通车"});
 
             // Set the combobox
             this.listView1.AddComboBoxCell(-1, 1, sortTypeCollect); 
@@ -1133,12 +1166,15 @@ namespace AutoBroswer
             // columnHeader2
             // 
             this.columnHeader2.Text = "排列";
-            this.columnHeader2.Width = keywordPanel.Width * 2 / 10;
+            this.columnHeader2.Width = keywordPanel.Width * 1 / 10;
             // 
             // columnHeader3
             // 
             this.columnHeader3.Text = "页码范围";
-            this.columnHeader3.Width = keywordPanel.Width * 2/10;
+            this.columnHeader3.Width = keywordPanel.Width * 1/10;
+
+            this.columnHeader4.Text = "价格范围";
+            this.columnHeader4.Width = keywordPanel.Width * 2 / 10;
 
             this.listView1.View = System.Windows.Forms.View.Details;
         }
@@ -1148,7 +1184,7 @@ namespace AutoBroswer
             string fileLines = "";
             foreach (ListViewItem item in listView1.Items)
             {
-                fileLines += "[" + item.SubItems[0].Text + "]" + "[" + item.SubItems[1].Text + "]" + "[" + item.SubItems[2].Text + "]";
+                fileLines += "[" + item.SubItems[0].Text + "]" + "[" + item.SubItems[1].Text + "]" + "[" + item.SubItems[2].Text + "]" + "[" + item.SubItems[3].Text + "]";
                 fileLines += "\n";
             }
             File.WriteAllText("KeyWord.txt", fileLines, Encoding.Default);
