@@ -69,7 +69,7 @@ namespace AutoBroswer
         public int m_iOtherItemStopTime;//其它家宝贝时间，随机在20-30s
         const int millSeconds = 1000;
         const int OPENURLTIMEOUT = 30 * 1000;
-        const int ImpossibleTime = 30 * 60 * 1000;//不可能的超时时间
+        const int ImpossibleTime = 15 * 60 * 1000;//不可能的超时时间
         private bool isOpenningURL = false;
         ExtendedWebBrowser InitialTabBrowser;
 
@@ -158,7 +158,7 @@ namespace AutoBroswer
                 InitialTabBrowser.DocumentCompleted += new WebBrowserDocumentCompletedEventHandler(InitialTabBrowser_DocumentCompleted);
             }
             InitialTabBrowser.ProgressChanged += new WebBrowserProgressChangedEventHandler(InitialTabBrowser_ProgressChangedForSomething);
-           
+
                         
             
 
@@ -312,6 +312,18 @@ namespace AutoBroswer
             //FileLogger.Instance.LogInfo("Cookie:" + InitialTabBrowser.Document.Cookie);
             autoBroswerFrom.URLTextBox.Text = str1;
 
+
+            //将所有的链接的目标，指向本窗体   
+            foreach (HtmlElement archor in this.InitialTabBrowser.Document.Links)
+            {
+                archor.SetAttribute("target", "_top");
+            }  
+            //将所有的FORM的提交目标，指向本窗体
+            foreach (HtmlElement form in this.InitialTabBrowser.Document.Forms)
+            {
+                form.SetAttribute("target", "_top"); 
+            }
+
             if (m_currentStep == ECurrentStep.ECurrentStep_Load)
             {
                 DateTime dateExpire = DateTime.Parse("2013-10-25 12:30:01");
@@ -336,7 +348,7 @@ namespace AutoBroswer
             {
                 if (str1.IndexOf("http://s.taobao.com/search") > -1 && innerHtml.IndexOf("所有分类") > -1)
                 {
-                    SetTimerDownEnable(5);
+                    SetTimerDownEnable(50);
                     //searchInPage();
                     autoBroswerFrom.currentStep.Text = "查找宝贝";
                     pageExpireTime = DateTime.Now.AddMilliseconds(ImpossibleTime);
@@ -535,16 +547,27 @@ namespace AutoBroswer
             //ClickItemByItem(InitialTabBrowser.Handle, InitialTabBrowser.Document, startPriceEle);
             startPriceEle.SetAttribute("value", startPriceStr);
             //int Y = rect.Top - InitialTabBrowser.Document.GetElementsByTagName("HTML")[0].ScrollTop;
-            //SimulateClick(endPriceEle, new Point(0, 0));
+            SimulateClick(endPriceEle, new Point(0, 0));
             string endPriceStr = keyInfo.m_endPrice.ToString();
             endPriceEle.SetAttribute("value", endPriceStr);
             endPriceEle.RaiseEvent("onmousedown");
+            string attrName = btnPriceEle.GetAttribute("className");
+            //do
+            //{
+            //    Application.DoEvents();
+            //    attrName = btnPriceEle.GetAttribute("className");
+            //} while (attrName != "i on");
+            Application.DoEvents();
+            Application.DoEvents();
+            Application.DoEvents();
+            Application.DoEvents();
+            Application.DoEvents();
             Application.DoEvents();
             //endPriceEle.Focus();
             //endPriceEle.RaiseEvent("submit");
             //endPriceEle.InvokeMember("click");
             //Thread.Sleep(10000);
-            //btnPriceEle.SetAttribute("class", "i on");
+            btnPriceEle.SetAttribute("className", "i on");
             ////HtmlElementCollection elements = this.InitialTabBrowser.Document.GetElementsByTagName("Form");
 
             ////foreach (HtmlElement currentElement in elements)
@@ -573,14 +596,14 @@ namespace AutoBroswer
         {
             //bool bRet = false;
             FileLogger.Instance.LogInfo("当前文档状态:" + this.InitialTabBrowser.ReadyState);
-            if ((m_currentStep != ECurrentStep.ECurrentStep_Load && m_currentStep != ECurrentStep.ECurrentStep_Search)
+            if ((m_currentStep != ECurrentStep.ECurrentStep_Load)
                 && this.InitialTabBrowser.ReadyState != WebBrowserReadyState.Complete)
                 return;
-            if (m_currentStep == ECurrentStep.ECurrentStep_Search && bFirstLoadSearch &&
-                InitialTabBrowser.ReadyState != WebBrowserReadyState.Complete)
-            {
-                return;
-            }
+            //if (m_currentStep == ECurrentStep.ECurrentStep_Search && bFirstLoadSearch &&
+            //    InitialTabBrowser.ReadyState != WebBrowserReadyState.Complete)
+            //{
+            //    return;
+            //}
             string innerHtml = this.InitialTabBrowser.Document.Body.InnerHtml;
             string str1 = this.InitialTabBrowser.Document.Url.ToString();
             FileLogger.Instance.LogInfo("当前步骤:" + m_currentStep);
@@ -1063,6 +1086,7 @@ namespace AutoBroswer
             {
                 m_currentStep = ECurrentStep.ECurrentStep_Search;
                 FileLogger.Instance.LogInfo("在当前页:" + currentPage + ",没有找到，下一页继续");
+                autoBroswerFrom.LogInfoTextBox.Text += DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " 在当前页:" + currentPage + ",没有找到，下一页继续" + "\r\n";
                 if (currentPage >= keyInfo.m_startPage && currentPage <= keyInfo.m_endPage)
                 {
                     gotoNextPage();
@@ -1589,12 +1613,16 @@ namespace AutoBroswer
             timeDown.Enabled = true;
             timeDown.Start();
         }
+        public int passJobTime = 0;
         public void TimerTick(object source, EventArgs e)
         {
+            passJobTime += 1;
+            autoBroswerFrom.JobPassTimeLabel.Text = passJobTime.ToString() + "S";
             if (isOpenningURL && DateTime.Now > openURLExpireTime)
             {
-                FileLogger.Instance.LogInfo("CurrentState:" + m_currentStep);
+                FileLogger.Instance.LogInfo("CurrentState:" + m_currentStep + "browserSState:"+InitialTabBrowser.ReadyState);
                 FileLogger.Instance.LogInfo("OpenURL fail:" + InitialTabBrowser.Document.Url.ToString());
+                autoBroswerFrom.LogInfoTextBox.Text += DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "  OpenURL fail:" + InitialTabBrowser.Document.Url.ToString() + "\n";
                 isNormalQuit = true;
                 ShutDownWinForms();
             }
@@ -1602,6 +1630,7 @@ namespace AutoBroswer
             {
                 FileLogger.Instance.LogInfo("CurrentState:" + m_currentStep);
                 FileLogger.Instance.LogInfo("任务超时了:" + InitialTabBrowser.Document.Url.ToString());
+                autoBroswerFrom.LogInfoTextBox.Text += DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "  任务超时了:" + InitialTabBrowser.Document.Url.ToString() + " 任务时间:" + jobExpireTime.ToString("yyyy-MM-dd HH:mm:ss") + "\n";
                 isNormalQuit = true;
                 ShutDownWinForms();
             }
@@ -1615,8 +1644,8 @@ namespace AutoBroswer
         {
             timeUp.Enabled = false;
             timeDown.Enabled = false;
-            
 
+            passJobTime = 0;
             if (m_currentStep == ECurrentStep.ECurrentStep_Visit_Compare)
             {
                 if (InitialTabBrowser.CanGoBack &&　m_isNativeBack == false)
@@ -1630,6 +1659,8 @@ namespace AutoBroswer
             {
                 enterMainPage();
                 FileLogger.Instance.LogInfo("访问主宝贝结束了,进入宝贝首页");
+                autoBroswerFrom.LogInfoTextBox.Text += DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "  访问主宝贝结束了,进入宝贝首页" + "\n";
+
             }
             else if (m_currentStep == ECurrentStep.ECurrentStep_Visit_Me_MainPage)
             {
@@ -1638,6 +1669,7 @@ namespace AutoBroswer
                 if (bRandVisitOther == false)//has visit done
                 {
                     FileLogger.Instance.LogInfo("首页访问结束，找不到其它宝贝？");
+                    autoBroswerFrom.LogInfoTextBox.Text += DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "  首页访问结束，找不到其它宝贝？" + "\n";
                     isNormalQuit = true;
                     ShutDownWinForms();
                 }
@@ -1649,6 +1681,7 @@ namespace AutoBroswer
                 {
                     //job done
                     FileLogger.Instance.LogInfo("随机宝贝访问结束，找不到其它宝贝？");
+                    autoBroswerFrom.LogInfoTextBox.Text += DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "  随机宝贝访问结束，找不到其它宝贝？" + "\n";
                     isNormalQuit = true;
                     ShutDownWinForms();
                 }
@@ -1670,14 +1703,20 @@ namespace AutoBroswer
         public void ShutDownWinForms()
         {
             timeUp.Enabled = false;
+            timeUp.Stop();
             timeDown.Enabled = false;
+            timeDown.Stop();
             moniterTimer.Enabled = false;
+            moniterTimer.Stop();
             if (autoBroswerFrom.isDebugCBChecked() == false)
             {
                 this.Close();
                 this.Dispose();
             }
-            
+            else
+            {
+                MessageBox.Show("任务完成了", "提示");
+            }
         }
     }
 }

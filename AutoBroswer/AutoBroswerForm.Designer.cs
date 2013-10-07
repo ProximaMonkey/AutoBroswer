@@ -61,6 +61,7 @@
             this.keywordSaveBTN = new System.Windows.Forms.Button();
             this.keywordPanel = new System.Windows.Forms.Panel();
             this.tabPage2 = new System.Windows.Forms.TabPage();
+            this.JobPassTimeLabel = new System.Windows.Forms.Label();
             this.simulateInfoText = new System.Windows.Forms.Label();
             this.simulateStopBtn = new System.Windows.Forms.Button();
             this.stopTimeLabel = new System.Windows.Forms.Label();
@@ -68,9 +69,12 @@
             this.label9 = new System.Windows.Forms.Label();
             this.URLTextBox = new System.Windows.Forms.TextBox();
             this.webBrowserPanel = new System.Windows.Forms.Panel();
+            this.tabPage3 = new System.Windows.Forms.TabPage();
+            this.LogInfoTextBox = new System.Windows.Forms.TextBox();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
+            this.tabPage3.SuspendLayout();
             this.SuspendLayout();
             // 
             // beginBTN
@@ -311,6 +315,7 @@
             // 
             this.tabControl1.Controls.Add(this.tabPage1);
             this.tabControl1.Controls.Add(this.tabPage2);
+            this.tabControl1.Controls.Add(this.tabPage3);
             this.tabControl1.Location = new System.Drawing.Point(2, 12);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
@@ -412,6 +417,7 @@
             // 
             // tabPage2
             // 
+            this.tabPage2.Controls.Add(this.JobPassTimeLabel);
             this.tabPage2.Controls.Add(this.simulateInfoText);
             this.tabPage2.Controls.Add(this.simulateStopBtn);
             this.tabPage2.Controls.Add(this.stopTimeLabel);
@@ -426,6 +432,15 @@
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "模拟点击";
             this.tabPage2.UseVisualStyleBackColor = true;
+            // 
+            // JobPassTimeLabel
+            // 
+            this.JobPassTimeLabel.AutoSize = true;
+            this.JobPassTimeLabel.Location = new System.Drawing.Point(823, 15);
+            this.JobPassTimeLabel.Name = "JobPassTimeLabel";
+            this.JobPassTimeLabel.Size = new System.Drawing.Size(47, 12);
+            this.JobPassTimeLabel.TabIndex = 7;
+            this.JobPassTimeLabel.Text = "label11";
             // 
             // simulateInfoText
             // 
@@ -487,6 +502,26 @@
             this.webBrowserPanel.Size = new System.Drawing.Size(1049, 485);
             this.webBrowserPanel.TabIndex = 0;
             // 
+            // tabPage3
+            // 
+            this.tabPage3.Controls.Add(this.LogInfoTextBox);
+            this.tabPage3.Location = new System.Drawing.Point(4, 22);
+            this.tabPage3.Name = "tabPage3";
+            this.tabPage3.Size = new System.Drawing.Size(1126, 551);
+            this.tabPage3.TabIndex = 2;
+            this.tabPage3.Text = "日志详情";
+            this.tabPage3.UseVisualStyleBackColor = true;
+            // 
+            // LogInfoTextBox
+            // 
+            this.LogInfoTextBox.Location = new System.Drawing.Point(7, 11);
+            this.LogInfoTextBox.Multiline = true;
+            this.LogInfoTextBox.Name = "LogInfoTextBox";
+            this.LogInfoTextBox.ReadOnly = true;
+            this.LogInfoTextBox.ScrollBars = System.Windows.Forms.ScrollBars.Both;
+            this.LogInfoTextBox.Size = new System.Drawing.Size(1041, 520);
+            this.LogInfoTextBox.TabIndex = 0;
+            // 
             // AutoBroswerForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -503,6 +538,8 @@
             this.tabPage1.PerformLayout();
             this.tabPage2.ResumeLayout(false);
             this.tabPage2.PerformLayout();
+            this.tabPage3.ResumeLayout(false);
+            this.tabPage3.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -549,6 +586,9 @@
         private System.Windows.Forms.Button keywordSaveBTN;
         private System.Windows.Forms.TextBox ztcTextBox;
         private System.Windows.Forms.Label label10;
+        public System.Windows.Forms.Label JobPassTimeLabel;
+        private System.Windows.Forms.TabPage tabPage3;
+        public System.Windows.Forms.TextBox LogInfoTextBox;
     }
 }
 

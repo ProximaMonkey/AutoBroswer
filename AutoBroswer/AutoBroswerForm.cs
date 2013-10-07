@@ -204,12 +204,12 @@ namespace AutoBroswer
             }
             
             Control.CheckForIllegalCrossThreadCalls = false;
-            nonParameterThread1 = new Thread(SimulateVisitThread);
-            //nonParameterThread1.IsBackground = true;
+            nonParameterThread1 = new Thread((SimulateVisitThread));
+            nonParameterThread1.IsBackground = true;
             nonParameterThread1.SetApartmentState(ApartmentState.STA);
             nonParameterThread1.Start();
             tabControl1.SelectedIndex = 1;
-            
+            //nonParameterThread1.Join();
             
         }
         public bool LoadAllSeclecKeyword()
@@ -311,12 +311,16 @@ namespace AutoBroswer
                     keyInfo.m_ztcTitle = ztcTextBox.Text.Trim().ToString();
                     string searchName = "第 " + index + " 个，" + "关键词:" + keyInfo.m_keyword + "";
                     FileLogger.Instance.LogInfo(searchName);
+
+                    LogInfoTextBox.Text += "==============================================================\n";
+                    LogInfoTextBox.Text += DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + searchName + "\n";
                     if (isDebugCB.Checked == false)
                     {
                         bRet = changeVPN();
                         if (bRet == false)
                         {
                             FileLogger.Instance.LogInfo("切换VPN失败");
+                            LogInfoTextBox.Text += DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "切换VPN失败" + "\n";
                             continue;
                         }
                     }
@@ -331,13 +335,17 @@ namespace AutoBroswer
                         if (bRet)
                         {
                             FileLogger.Instance.LogInfo("cookie清理干净了");
+                            LogInfoTextBox.Text += DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "cookie清理干净了" + "\n";
                         }
                         else
                         {
-                            FileLogger.Instance.LogInfo("cookie清理干净了");
+                            FileLogger.Instance.LogInfo("cookie清理失败了");
+                            LogInfoTextBox.Text += DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "cookie清理失败了" + "\n";
                         }
                         bRet = runNiuBDASHI();
                     }
+
+                    LogInfoTextBox.Text += DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "下一个任务" + "\n";
 
                     FileLogger.Instance.LogInfo("下一个任务!");
                     if (simulateTab.isNormalQuit == false)
@@ -573,6 +581,8 @@ namespace AutoBroswer
                     } while ((statusTxt.ToLower().Contains("disconnected") || statusTxt.ToLower().Contains("...") || statusTxt.ToLower().Contains("authen") || statusTxt.ToLower().Contains("connecting")
                         || statusTxt.ToLower().Contains("projection") || statusTxt.ToLower() == "") && waitIndex < m_waitVPNConnectTime);
                     FileLogger.Instance.LogInfo("VPNStatus:" + statusTxt);
+                    LogInfoTextBox.Text += DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "当前选择线路：" + curSelectComboboxName + "VPNStatus:" + statusTxt + "\n";
+
                     Thread.Sleep(500);
                 }
                 else
