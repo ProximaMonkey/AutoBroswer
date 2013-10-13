@@ -2,8 +2,13 @@
 Microsoft Visual Studio Solution File, Format Version 10.00
 # Visual Studio 2008
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoBroswer", "AutoBroswer\AutoBroswer.csproj", "{782E50FB-F668-43B2-A939-47300B3F5326}"
+	ProjectSection(ProjectDependencies) = postProject
+		{1C54FEC6-FC1D-4038-950E-6315343FE1BE} = {1C54FEC6-FC1D-4038-950E-6315343FE1BE}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HtmlAgilityPack", "HtmlAgilityPack\HtmlAgilityPack.csproj", "{193BB801-054F-4729-9D5D-FCE1E32594BF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TenDayBrowser", "WebBrowser\TenDayBrowser.csproj", "{1C54FEC6-FC1D-4038-950E-6315343FE1BE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -19,6 +24,10 @@ Global
 		{193BB801-054F-4729-9D5D-FCE1E32594BF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{193BB801-054F-4729-9D5D-FCE1E32594BF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{193BB801-054F-4729-9D5D-FCE1E32594BF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1C54FEC6-FC1D-4038-950E-6315343FE1BE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1C54FEC6-FC1D-4038-950E-6315343FE1BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1C54FEC6-FC1D-4038-950E-6315343FE1BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1C54FEC6-FC1D-4038-950E-6315343FE1BE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -144,6 +144,7 @@ namespace AutoBroswer
 
             timeDown.Interval = 100;
             timeUp.Interval = 100;
+            InitialTabBrowser.Visible = true;
             InitialTabBrowser.NavigateError += new AutoBroswer.ExtendedWebBrowser.WebBrowserNavigateErrorEventHandler(InitialTabBrowser_NavigateError);
             if (_keyInfo.isZTCClick())
             {
@@ -177,7 +178,7 @@ namespace AutoBroswer
             moniterTimer.Interval = 1000;
             moniterTimer.Enabled = true;
             moniterTimer.Start();
-
+            Application.DoEvents();
         }
 
         public bool searchBroswer(string keyword)

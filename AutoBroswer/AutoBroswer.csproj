@@ -80,7 +80,6 @@
     </Compile>
     <Compile Include="DatabaseSetup.cs" />
     <Compile Include="ExtendedWebBrowser.cs">
-      <SubType>Component</SubType>
     </Compile>
     <Compile Include="FileLogger.cs" />
     <Compile Include="invalidcode.cs" />
@@ -121,6 +120,7 @@
     <Compile Include="SimulateTab.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="TaskBroswer.cs" />
     <Compile Include="wbElementClick.cs" />
     <Compile Include="WebBroswerForm.cs">
       <SubType>Form</SubType>
@@ -175,6 +175,10 @@
     <ProjectReference Include="..\HtmlAgilityPack\HtmlAgilityPack.csproj">
       <Project>{193BB801-054F-4729-9D5D-FCE1E32594BF}</Project>
       <Name>HtmlAgilityPack</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\WebBrowser\TenDayBrowser.csproj">
+      <Project>{1C54FEC6-FC1D-4038-950E-6315343FE1BE}</Project>
+      <Name>TenDayBrowser</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

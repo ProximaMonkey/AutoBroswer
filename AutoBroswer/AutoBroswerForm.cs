@@ -205,7 +205,7 @@ namespace AutoBroswer
             
             Control.CheckForIllegalCrossThreadCalls = false;
             nonParameterThread1 = new Thread((SimulateVisitThread));
-            nonParameterThread1.IsBackground = true;
+            //nonParameterThread1.IsBackground = true;
             nonParameterThread1.SetApartmentState(ApartmentState.STA);
             nonParameterThread1.Start();
             tabControl1.SelectedIndex = 1;
@@ -535,6 +535,7 @@ namespace AutoBroswer
                 return false;
             }
             int count = SendMessage(regionCombox, CB_GETCOUNT, 0, 0);
+            int reCode = Marshal.GetLastWin32Error();
             FileLogger.Instance.LogInfo("VPNCount:" + count);
             Thread.Sleep(100);
             count = SendMessage(regionCombox, CB_GETCOUNT, 0, 0);

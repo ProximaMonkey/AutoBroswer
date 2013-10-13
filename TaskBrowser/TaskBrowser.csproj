@@ -1,0 +1,90 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
+  <PropertyGroup>
+    <ProjectType>local</ProjectType>
+    <ProjectVersion>7.10.377</ProjectVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{0D9C92B8-812B-4788-A674-253FFA21977E}</ProjectGuid>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <AssemblyName>TaskBrowser</AssemblyName>
+    <OutputType>WinExe</OutputType>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <PlatformTarget>x86</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <PlatformTarget>x86</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="Microsoft.mshtml" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="Interop.SHDocVw">
+      <HintPath>E:\project\AutoBroswer\AutoBroswer\bin\Release\Interop.SHDocVw.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Xml" />
+    <Compile Include="AssemblyInfo.cs" />
+    <Compile Include="Global.cs" />
+    <Compile Include="TaskBrowser\Properties\Settings.cs" />
+    <Compile Include="TaskBrowser\ClickEvent.cs" />
+    <Compile Include="TaskBrowser\BrowserExtendedNavigatingEventArgs.cs" />
+    <Compile Include="TaskBrowser\HtmlUtil.cs" />
+    <Compile Include="TaskBrowser\TaskForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="TaskBrowser\Program.cs" />
+    <Compile Include="TaskBrowser\WindowUtil.cs" />
+    <Compile Include="TaskBrowser\COPYDATASTRUCT.cs" />
+    <Compile Include="TaskBrowser\WindowsMessages.cs" />
+    <Compile Include="TaskBrowser\ComboBoxItem.cs" />
+    <Compile Include="TaskBrowser\Rect.cs" />
+    <Compile Include="TaskBrowser\COMRECT.cs" />
+    <Compile Include="TaskBrowser\ShowCommands.cs" />
+    <Compile Include="TaskBrowser\MyTask.cs" />
+    <Compile Include="TaskBrowser\Province_Name.cs" />
+    <Compile Include="TaskBrowser\FindSubWindow.cs" />
+    <Compile Include="TaskBrowser\TaskInfo.cs" />
+    <Compile Include="TaskBrowser\TaskCommand.cs" />
+    <Compile Include="TaskBrowser\ElementTag.cs" />
+    <Compile Include="TaskBrowser\LoadTempHtml.cs" />
+    <Compile Include="TaskBrowser\IEWatcherStatus.cs" />
+    <Compile Include="TaskBrowser\IEItem.cs" />
+    <Compile Include="TaskBrowser\IEStatus.cs" />
+    <Compile Include="TaskBrowser\ExtendedWebBrowser.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="TaskBrowser\UnsafeNativeMethods.cs" />
+    <Compile Include="TaskBrowser\UrlContext.cs" />
+    <Compile Include="TaskBrowser\IPersistMoniker.cs" />
+    <Compile Include="TaskBrowser\Iid_Clsids.cs" />
+    <Compile Include="TaskBrowser\LoadHTMLMoniker.cs" />
+    <Compile Include="TaskBrowser\IPersistStreamInit.cs" />
+    <Compile Include="TaskBrowser\ExtendedTabControl.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="TaskBrowser\Properties\Resources.cs" />
+    <Compile Include="TaskBrowser\NativeMethods.cs" />
+    <Compile Include="TaskBrowser\Logger.cs" />
+    <EmbeddedResource Include="TaskBrowser.TaskForm.resources" />
+    <EmbeddedResource Include="TaskBrowser.Properties.Resources.resources" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="点击精灵.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,97 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
+  <PropertyGroup>
+    <ProjectType>local</ProjectType>
+    <ProjectVersion>7.10.377</ProjectVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{E1EF7DAA-7312-46F9-BEAB-A9D94B3AC534}</ProjectGuid>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <AssemblyName>点击精灵</AssemblyName>
+    <OutputType>WinExe</OutputType>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <PlatformTarget>x86</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <PlatformTarget>x86</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <ItemGroup>
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System" />
+    <Reference Include="Microsoft.mshtml" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="Interop.SHDocVw" />
+    <Reference Include="System.Xml" />
+    <Compile Include="AssemblyInfo.cs" />
+    <Compile Include="Global.cs" />
+    <Compile Include="client\ServerSocket.cs" />
+    <Compile Include="client\ServerMsg.cs" />
+    <Compile Include="client\HtmlUtil.cs" />
+    <Compile Include="client\PacketProcessInfo.cs" />
+    <Compile Include="client\PacketProcess.cs" />
+    <Compile Include="client\LoginUtil.cs" />
+    <Compile Include="client\ManageForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="client\Properties\Resources.cs" />
+    <Compile Include="client\Properties\Settings.cs" />
+    <Compile Include="client\WorldPacket.cs" />
+    <Compile Include="client\CreateAccountForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="client\EngineManager.cs" />
+    <Compile Include="client\NetManagerStatus.cs" />
+    <Compile Include="client\AuthError.cs" />
+    <Compile Include="client\Logger.cs" />
+    <Compile Include="client\ServerSession.cs" />
+    <Compile Include="client\TaskInfo.cs" />
+    <Compile Include="client\TaskCommand.cs" />
+    <Compile Include="client\ElementTag.cs" />
+    <Compile Include="client\RC5Crypt.cs" />
+    <Compile Include="client\GateSession.cs" />
+    <Compile Include="client\Program.cs" />
+    <Compile Include="client\PanelInfo.cs" />
+    <Compile Include="client\IEWatcherTaskType.cs" />
+    <Compile Include="client\EngineCaterogy.cs" />
+    <Compile Include="client\BrowserManager.cs" />
+    <Compile Include="client\MessageForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="client\WindowUtil.cs" />
+    <Compile Include="client\COPYDATASTRUCT.cs" />
+    <Compile Include="client\WindowsMessages.cs" />
+    <Compile Include="client\ComboBoxItem.cs" />
+    <Compile Include="client\Rect.cs" />
+    <Compile Include="client\COMRECT.cs" />
+    <Compile Include="client\ChangeUserForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="client\TaskBrowser2.cs" />
+    <Compile Include="client\MyTask.cs" />
+    <Compile Include="client\TaskRunStatus.cs" />
+    <Compile Include="client\Province_Name.cs" />
+    <Compile Include="client\GateSocket.cs" />
+    <Compile Include="client\GateMsg.cs" />
+    <Compile Include="client\NetStatus.cs" />
+    <EmbeddedResource Include="client.CreateAccountForm.resources" />
+    <EmbeddedResource Include="client.ChangeUserForm.resources" />
+    <EmbeddedResource Include="client.Properties.Resources.resources" />
+    <EmbeddedResource Include="client.MessageForm.resources" />
+    <EmbeddedResource Include="client.ManageForm.resources" />
+  </ItemGroup>
+</Project>
