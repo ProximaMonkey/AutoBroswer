@@ -1,0 +1,8 @@
+E:\GitHub\AutoBroswer\AutoBroswer\bin\Debug\WebBrowser.exe
+E:\GitHub\AutoBroswer\AutoBroswer\bin\Debug\WebBrowser.pdb
+E:\GitHub\AutoBroswer\WebBrowser\obj\Debug\ResolveAssemblyReference.cache
+E:\GitHub\AutoBroswer\WebBrowser\obj\Debug\WebBrowser.Properties.Resources.resources
+E:\GitHub\AutoBroswer\WebBrowser\obj\Debug\TenDayBrowser.TenDayBrowser.resources
+E:\GitHub\AutoBroswer\WebBrowser\obj\Debug\TenDayBrowser.csproj.GenerateResource.Cache
+E:\GitHub\AutoBroswer\WebBrowser\obj\Debug\WebBrowser.exe
+E:\GitHub\AutoBroswer\WebBrowser\obj\Debug\WebBrowser.pdb

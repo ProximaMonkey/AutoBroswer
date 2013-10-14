@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskBrowser", "TaskBrowser.csproj", "{0D9C92B8-812B-4788-A674-253FFA21977E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "点击精灵", "..\点击精灵\点击精灵.csproj", "{E1EF7DAA-7312-46F9-BEAB-A9D94B3AC534}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x86 = Debug|x86
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0D9C92B8-812B-4788-A674-253FFA21977E}.Debug|x86.ActiveCfg = Debug|x86
+		{0D9C92B8-812B-4788-A674-253FFA21977E}.Debug|x86.Build.0 = Debug|x86
+		{0D9C92B8-812B-4788-A674-253FFA21977E}.Release|x86.ActiveCfg = Release|x86
+		{0D9C92B8-812B-4788-A674-253FFA21977E}.Release|x86.Build.0 = Release|x86
+		{E1EF7DAA-7312-46F9-BEAB-A9D94B3AC534}.Debug|x86.ActiveCfg = Debug|x86
+		{E1EF7DAA-7312-46F9-BEAB-A9D94B3AC534}.Debug|x86.Build.0 = Debug|x86
+		{E1EF7DAA-7312-46F9-BEAB-A9D94B3AC534}.Release|x86.ActiveCfg = Release|x86
+		{E1EF7DAA-7312-46F9-BEAB-A9D94B3AC534}.Release|x86.Build.0 = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

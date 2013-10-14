@@ -1,0 +1,5 @@
+E:\GitHub\AutoBroswer\HtmlAgilityPack\bin\Debug\HtmlAgilityPack.dll
+E:\GitHub\AutoBroswer\HtmlAgilityPack\bin\Debug\HtmlAgilityPack.pdb
+E:\GitHub\AutoBroswer\HtmlAgilityPack\obj\Debug\ResolveAssemblyReference.cache
+E:\GitHub\AutoBroswer\HtmlAgilityPack\obj\Debug\HtmlAgilityPack.dll
+E:\GitHub\AutoBroswer\HtmlAgilityPack\obj\Debug\HtmlAgilityPack.pdb

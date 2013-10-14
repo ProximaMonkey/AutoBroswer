@@ -36,7 +36,7 @@
     <Reference Include="Microsoft.mshtml" />
     <Reference Include="System.Drawing" />
     <Reference Include="Interop.SHDocVw">
-      <HintPath>E:\project\AutoBroswer\AutoBroswer\bin\Release\Interop.SHDocVw.dll</HintPath>
+      <HintPath>..\AutoBroswer\bin\Release\Interop.SHDocVw.dll</HintPath>
     </Reference>
     <Reference Include="System.Xml" />
     <Compile Include="AssemblyInfo.cs" />

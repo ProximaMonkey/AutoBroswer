@@ -3893,7 +3893,7 @@
             this.groupBoxDeepClick.Size = new Size(0xc0, 0x9d);
             this.groupBoxDeepClick.TabIndex = 1;
             this.groupBoxDeepClick.TabStop = false;
-            this.textBoxDeepClickText.ImeMode = ImeMode.On;
+            //this.textBoxDeepClickText.ImeMode = ImeMode.On;
             this.textBoxDeepClickText.Location = new Point(10, 0x2e);
             this.textBoxDeepClickText.Name = "textBoxDeepClickText";
             this.textBoxDeepClickText.Size = new Size(0xb3, 0x15);
@@ -3972,7 +3972,7 @@
             this.groupBoxFindPage.Size = new Size(0xc0, 0xd9);
             this.groupBoxFindPage.TabIndex = 11;
             this.groupBoxFindPage.TabStop = false;
-            this.textBoxFindKeyword.ImeMode = ImeMode.On;
+            //this.textBoxFindKeyword.ImeMode = ImeMode.On;
             this.textBoxFindKeyword.Location = new Point(0x47, 80);
             this.textBoxFindKeyword.Name = "textBoxFindKeyword";
             this.textBoxFindKeyword.Size = new Size(0x71, 0x15);
@@ -4012,7 +4012,7 @@
             this.buttonFindPage.UseVisualStyleBackColor = true;
             this.buttonFindPage.MouseDown += new MouseEventHandler(this.FindDestPageMouseDown);
             this.buttonFindPage.MouseUp += new MouseEventHandler(this.FindMouseUp);
-            this.textBoxFindPageNext.ImeMode = ImeMode.On;
+            //this.textBoxFindPageNext.ImeMode = ImeMode.On;
             this.textBoxFindPageNext.Location = new Point(10, 0x83);
             this.textBoxFindPageNext.Name = "textBoxFindPageNext";
             this.textBoxFindPageNext.Size = new Size(0xb3, 0x15);
@@ -4023,7 +4023,7 @@
             this.label60.Size = new Size(0x41, 12);
             this.label60.TabIndex = 4;
             this.label60.Text = "下一页链接";
-            this.textBoxFindPage.ImeMode = ImeMode.On;
+            //this.textBoxFindPage.ImeMode = ImeMode.On;
             this.textBoxFindPage.Location = new Point(10, 0x36);
             this.textBoxFindPage.Name = "textBoxFindPage";
             this.textBoxFindPage.Size = new Size(0xb3, 0x15);
@@ -4067,12 +4067,12 @@
             this.buttonInsertClickLink.Text = "插入>>";
             this.buttonInsertClickLink.UseVisualStyleBackColor = true;
             this.buttonInsertClickLink.Click += new EventHandler(this.buttonInsertClickLinkClick);
-            this.textBoxLinkKeyword.ImeMode = ImeMode.On;
+            //this.textBoxLinkKeyword.ImeMode = ImeMode.On;
             this.textBoxLinkKeyword.Location = new Point(0x47, 0x36);
             this.textBoxLinkKeyword.Name = "textBoxLinkKeyword";
             this.textBoxLinkKeyword.Size = new Size(0x71, 0x15);
             this.textBoxLinkKeyword.TabIndex = 0;
-            this.textBoxLink.ImeMode = ImeMode.On;
+            //this.textBoxLink.ImeMode = ImeMode.On;
             this.textBoxLink.Location = new Point(10, 30);
             this.textBoxLink.Name = "textBoxLink";
             this.textBoxLink.Size = new Size(0xb5, 0x15);
@@ -4115,7 +4115,7 @@
             this.buttonInsertClickChecked.Text = "插入>>";
             this.buttonInsertClickChecked.UseVisualStyleBackColor = true;
             this.buttonInsertClickChecked.Click += new EventHandler(this.buttonInsertClickCheckedClick);
-            this.textBoxCheckedID.ImeMode = ImeMode.On;
+            //this.textBoxCheckedID.ImeMode = ImeMode.On;
             this.textBoxCheckedID.Location = new Point(10, 0x25);
             this.textBoxCheckedID.Name = "textBoxCheckedID";
             this.textBoxCheckedID.Size = new Size(100, 0x15);
@@ -4152,7 +4152,7 @@
             this.buttonInsertClickRadio.Text = "插入>>";
             this.buttonInsertClickRadio.UseVisualStyleBackColor = true;
             this.buttonInsertClickRadio.Click += new EventHandler(this.buttonInsertClickRadioClick);
-            this.textBoxRadioID.ImeMode = ImeMode.On;
+            //this.textBoxRadioID.ImeMode = ImeMode.On;
             this.textBoxRadioID.Location = new Point(10, 0x25);
             this.textBoxRadioID.Name = "textBoxRadioID";
             this.textBoxRadioID.Size = new Size(100, 0x15);
@@ -4189,7 +4189,7 @@
             this.buttonInsertClickButton.Text = "插入>>";
             this.buttonInsertClickButton.UseVisualStyleBackColor = true;
             this.buttonInsertClickButton.Click += new EventHandler(this.buttonInsertClickButtonClick);
-            this.textBoxButtonID.ImeMode = ImeMode.On;
+            //this.textBoxButtonID.ImeMode = ImeMode.On;
             this.textBoxButtonID.Location = new Point(10, 0x25);
             this.textBoxButtonID.Name = "textBoxButtonID";
             this.textBoxButtonID.Size = new Size(100, 0x15);
@@ -4227,7 +4227,7 @@
             this.buttonInsertInputText.Text = "插入>>";
             this.buttonInsertInputText.UseVisualStyleBackColor = true;
             this.buttonInsertInputText.Click += new EventHandler(this.buttonInsertInputTextClick);
-            this.textBoxInputText.ImeMode = ImeMode.On;
+            //this.textBoxInputText.ImeMode = ImeMode.On;
             this.textBoxInputText.Location = new Point(10, 0x3f);
             this.textBoxInputText.Multiline = true;
             this.textBoxInputText.Name = "textBoxInputText";
@@ -4240,7 +4240,7 @@
             this.buttonEnterInputText.Text = "输入文本";
             this.buttonEnterInputText.UseVisualStyleBackColor = true;
             this.buttonEnterInputText.Click += new EventHandler(this.buttonInputTextClick);
-            this.textBoxInputBoxName.ImeMode = ImeMode.On;
+            //this.textBoxInputBoxName.ImeMode = ImeMode.On;
             this.textBoxInputBoxName.Location = new Point(10, 0x25);
             this.textBoxInputBoxName.Name = "textBoxInputBoxName";
             this.textBoxInputBoxName.Size = new Size(100, 0x15);
@@ -4277,12 +4277,12 @@
             this.buttonInsertWebSite.Text = "插入>>";
             this.buttonInsertWebSite.UseVisualStyleBackColor = true;
             this.buttonInsertWebSite.Click += new EventHandler(this.buttonInsertWebSiteClick);
-            this.textBoxWebSiteRefer.ImeMode = ImeMode.On;
+            //this.textBoxWebSiteRefer.ImeMode = ImeMode.On;
             this.textBoxWebSiteRefer.Location = new Point(0x30, 60);
             this.textBoxWebSiteRefer.Name = "textBoxWebSiteRefer";
             this.textBoxWebSiteRefer.Size = new Size(0x8f, 0x15);
             this.textBoxWebSiteRefer.TabIndex = 0;
-            this.textBoxWebSite.ImeMode = ImeMode.On;
+            //this.textBoxWebSite.ImeMode = ImeMode.On;
             this.textBoxWebSite.Location = new Point(10, 0x21);
             this.textBoxWebSite.Name = "textBoxWebSite";
             this.textBoxWebSite.Size = new Size(0xb5, 0x15);
@@ -4401,7 +4401,7 @@
             this.groupBox8.Controls.Add(this.label31);
             this.groupBox8.Location = new Point(390, 0x2b);
             this.groupBox8.Name = "groupBox8";
-            this.groupBox8.RightToLeft = RightToLeft.No;
+            //this.groupBox8.RightToLeft = RightToLeft.No;
             this.groupBox8.Size = new Size(350, 230);
             this.groupBox8.TabIndex = 6;
             this.groupBox8.TabStop = false;
@@ -5686,7 +5686,7 @@
             this.panel5.Name = "panel5";
             this.panel5.Size = new Size(0x31e, 0x4b);
             this.panel5.TabIndex = 0x12;
-            this.textBoxTaskNote.ImeMode = ImeMode.On;
+            //this.textBoxTaskNote.ImeMode = ImeMode.On;
             this.textBoxTaskNote.Location = new Point(0x114, 12);
             this.textBoxTaskNote.Name = "textBoxTaskNote";
             this.textBoxTaskNote.Size = new Size(0xdb, 0x15);
@@ -5882,7 +5882,7 @@
             this.ToolStripMenuItem8.Text = "运行";
             this.ToolStripMenuItem8.Click += new EventHandler(this.TaskRunClick);
             base.AutoScaleDimensions = new SizeF(6f, 12f);
-            base.AutoScaleMode = AutoScaleMode.Font;
+            //base.AutoScaleMode = AutoScaleMode.Font;
             base.ClientSize = new Size(0x336, 0x232);
             base.Controls.Add(this.panel1);
             base.Controls.Add(this.panel2);

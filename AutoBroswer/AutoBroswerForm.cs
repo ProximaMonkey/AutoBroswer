@@ -18,7 +18,8 @@ using System.Net;
 using HtmlAgilityPack;
 using System.Net.Sockets;
 using Microsoft.Win32;
-using System.Collections.Specialized; //
+using System.Collections.Specialized;
+using TenDayBrowser; //
 
 namespace AutoBroswer
 {
@@ -204,7 +205,7 @@ namespace AutoBroswer
             }
             
             Control.CheckForIllegalCrossThreadCalls = false;
-            nonParameterThread1 = new Thread((SimulateVisitThread));
+            nonParameterThread1 = new Thread((SimulateVisitThreadNew));
             //nonParameterThread1.IsBackground = true;
             nonParameterThread1.SetApartmentState(ApartmentState.STA);
             nonParameterThread1.Start();
@@ -276,6 +277,238 @@ namespace AutoBroswer
             return true;
             
         }
+        #region 新版模拟访问线程
+
+        BrowserManager _browserManager = new BrowserManager();
+        public BrowserManager BrowserManager
+        {
+            get
+            {
+                return this._browserManager;
+            }
+        }
+        public void StartBrowserProcess([Optional, DefaultParameterValue(false)]bool forceOpen)
+        {
+            this.BrowserManager.CreateBrowserProcess(!forceOpen && (this.toolStripButtonOpenBrowser.Text == "打开浏览器"), this._mainWnd);
+        }
+        public MyTask GetTestTask()
+        {
+            MyTask task = null;
+            if (this._testTask != null)
+            {
+                if (this._browserManager.GetEmptyBrowserWindow())
+                {
+                    if (this._testTask != null)
+                    {
+                        task = this._testTask;
+                        this._testTask = null;
+                        this.RunTask(task);
+                    }
+                    return task;
+                }
+                else
+                {
+                    this.StartBrowserProcess(true);
+                }
+            }
+            return task;
+        }
+        private MyTask _testTask;
+        private int _curTaskIndex = -1;
+        private int _inputIndex = 0;
+        private int _buttonIndex = 0;
+        private bool initTaskInfo()
+        {
+            _testTask.Remove(-1);
+            _curTaskIndex = -1;
+            return true;
+        }
+        private bool createNativeURL(string naviteURL,string referURL)
+        {
+            if (!string.IsNullOrEmpty(naviteURL))
+            {
+                if (!naviteURL.StartsWith("http://") && !naviteURL.StartsWith("https://"))
+                {
+                    naviteURL = "http://" + naviteURL;
+                }
+                if ((!string.IsNullOrEmpty(referURL) && !referURL.StartsWith("http://")) && !referURL.StartsWith("https://"))
+                {
+                    referURL = "http://" + referURL;
+                }
+                int num = TaskCommand.Task_Navigate;
+                TaskInfo task = new TaskInfo(num.ToString(), str, str2, "", "");
+                this._task.Insert(task, this._curTaskIndex++);
+
+                //this.ReloadTask(false);
+                //this.SetTaskItem(TaskCommand.Task_None);
+            }
+            return true;
+        }
+        private bool createInputText(string textBoxInputBoxName, string textBoxInputText, [Optional, DefaultParameterValue(ElementTag.ID)] ElementTag iD, [Optional, DefaultParameterValue(0)] index)
+        {
+            string str = textBoxInputBoxName.Text.Trim();
+            string str2 = textBoxInputText.Text.Trim();
+            //ElementTag iD = ElementTag.ID;
+            if (!string.IsNullOrEmpty(str) && !string.IsNullOrEmpty(str2))
+            {
+                TaskInfo info;
+                int num = (int)TaskCommand.Task_InputText;
+                int num2 = (int)iD;
+                if (this._inputIndex == 0)
+                {
+                    info = new TaskInfo(num.ToString(), str, str2, num2.ToString(), "");
+                }
+                else
+                {
+                    info = new TaskInfo(num.ToString(), str, str2, num2.ToString(), index.ToString());
+                }
+                this._task.Insert(info, this._curTaskIndex++);
+
+            }
+            return true;
+        }
+        private bool createClickButton(string textBoxButtonID, [Optional, DefaultParameterValue(ElementTag.className)] ElementTag iD, [Optional, DefaultParameterValue(0)] index)
+        {
+            if (!string.IsNullOrEmpty(textBoxButtonID))
+            {
+                TaskInfo info;
+                int num = TaskCommand.Task_ClickButton;
+                int num2 = (int)iD;
+                info = new TaskInfo(num.ToString(), textBoxButtonID, num2.ToString(), index.ToString(), "");
+                this._task.Insert(info, this._curTaskIndex++);
+            }
+            return true;
+        }
+        private bool createClickLink(string linkName, [Optional, DefaultParameterValue(ElementTag.className)] ElementTag iD)
+        {
+            if (!string.IsNullOrEmpty(linkName))
+            {
+                TaskInfo info;
+                int num = TaskCommand.Task_ClickLink;
+                int num2 = (int)iD;
+                info = new TaskInfo(num.ToString(), linkName, num2.ToString(), index.ToString(), "");
+                this._task.Insert(info, this._curTaskIndex++);
+            }
+            return true;
+        }
+        private bool CreateZRSearchTask(STKeyInfo keyInfo)
+        {
+            createNativeURL("www.taobao.com", "www.baidu.com");
+            createInputText("q", keyInfo.m_keyword, ElementTag.ID, 0);
+            createClickButton("btn-seasrch", ElementTag.className, 0);
+
+            if (keyInfo.isZTCClick() == false)
+            {
+                if (keyInfo.m_sortType == 1)
+                {
+                    createClickLink("人气", ElementTag.outerText);
+                }else if (keyInfo.m_sortType == 2)
+                {
+                    createClickLink("销量", ElementTag.outerText);
+                }
+            }
+            if (keyInfo.m_startPrice < keyInfo.m_endPrice)
+            {
+                createInputText("start_price", keyInfo.m_startPrice.ToString(), ElementTag.name, 0);
+                createInputText("end_price", keyInfo.m_endPrice.ToString(), ElementTag.name, 0);
+                createClickButton("确定", ElementTag.outerText, 2);
+            }
+
+            if (keyInfo.m_startPage < keyInfo.m_endPage && keyInfo.m_startPage != 1)
+            {
+                createInputText("page-num", keyInfo.m_startPage.ToString(), ElementTag, 0);
+                createClickLink（）；
+            }
+        }
+        private void SimulateVisitThreadNew()
+        {
+            bool bRet = false;
+            int expireTimer = getExpireTime() * 60 * 1000;
+            try
+            {
+                int loopCnt = Convert.ToInt32(broswerNumTXT.Text.Trim());
+
+                int uaCollectCount = broswerUACollection.Count;
+                for (int index = 1; index <= loopCnt; index++)
+                {
+
+                    //int for loop
+                    STKeyInfo keyInfo = new STKeyInfo();
+                    keyInfo.initSTKeyInfo();
+
+                    bRet = selectKeywordInfo(ref keyInfo);
+                    if (bRet == false)
+                    {
+                        FileLogger.Instance.LogInfo("选择关键词失败");
+                        continue;
+                    }
+
+                    string uaString = "";
+                    string uaCaptionStr = "";
+                    if (uaCollectCount != 0)
+                    {
+                        int uaIndex = rndGenerator.Next(0, uaCollectCount);
+                        uaString = broswerUACollection[uaIndex].m_uaContent;
+                        uaCaptionStr = broswerUACollection[uaIndex].m_uaDesc;
+                    }
+                    keyInfo.m_ztcTitle = ztcTextBox.Text.Trim().ToString();
+                    string searchName = "第 " + index + " 个，" + "关键词:" + keyInfo.m_keyword + "";
+                    FileLogger.Instance.LogInfo(searchName);
+
+                    LogInfoTextBox.Text += "==============================================================\n";
+                    LogInfoTextBox.Text += DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + searchName + "\n";
+                    if (isDebugCB.Checked == false)
+                    {
+                        bRet = changeVPN();
+                        if (bRet == false)
+                        {
+                            FileLogger.Instance.LogInfo("切换VPN失败");
+                            LogInfoTextBox.Text += DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "切换VPN失败" + "\n";
+                            continue;
+                        }
+                    }
+                    SimulateTab simulateTab = new SimulateTab(keyInfo, uaString, this, expireTimer);
+                    simulateInfoText.Text = " IP:" + curSelectComboboxName.ToString() + " 系统浏览器[版本号]:" + uaCaptionStr + " " + searchName;
+                    Application.Run(simulateTab);
+                    GC.Collect();
+                    if (isDebugCB.Checked == false)
+                    {
+                        bRet = disconnectVPN();
+                        bRet = runCClean();
+                        if (bRet)
+                        {
+                            FileLogger.Instance.LogInfo("cookie清理干净了");
+                            LogInfoTextBox.Text += DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "cookie清理干净了" + "\n";
+                        }
+                        else
+                        {
+                            FileLogger.Instance.LogInfo("cookie清理失败了");
+                            LogInfoTextBox.Text += DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "cookie清理失败了" + "\n";
+                        }
+                        bRet = runNiuBDASHI();
+                    }
+
+                    LogInfoTextBox.Text += DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "下一个任务" + "\n";
+
+                    FileLogger.Instance.LogInfo("下一个任务!");
+                    if (simulateTab.isNormalQuit == false)
+                    {
+                        FileLogger.Instance.LogInfo("手动停止!");
+                        break;
+                    }
+                }
+            }
+            catch (Exception error)
+            {
+                FileLogger.Instance.LogInfo("Error:" + error.Message);
+                FileLogger.Instance.LogInfo("StackTrace:" + error.StackTrace);
+                nonParameterThread1.Abort();
+                MessageBox.Show(error.Message, "error!");
+                Console.WriteLine(error.Message.ToString());
+                Console.WriteLine(error.StackTrace);
+            }
+        }
+#endregion
         #region 模拟访问线程
         private void SimulateVisitThread()
         {
